@@ -1,0 +1,28 @@
+plugins {
+    id 'java'
+}
+
+group 'de.optimax_energy'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 20
+targetCompatibility = 20
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    springBootVersion = "3.1.3"
+    junitVersion = "5.8.1"
+}
+
+dependencies {
+    implementation "org.springframework.boot:spring-boot-starter:${springBootVersion}"
+
+    testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+}
+
+test {
+    useJUnitPlatform()
+}
