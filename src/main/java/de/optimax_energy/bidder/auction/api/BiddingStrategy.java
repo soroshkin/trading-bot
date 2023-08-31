@@ -1,7 +1,7 @@
 package de.optimax_energy.bidder.auction.api;
 
 import de.optimax_energy.bidder.auction.api.dto.RoundResult;
-import de.optimax_energy.bidder.auction.infrastructure.StrategyName;
+import de.optimax_energy.bidder.auction.api.dto.StrategyName;
 
 import java.util.List;
 

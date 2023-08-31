@@ -1,7 +1,8 @@
-package de.optimax_energy.bidder.auction.infrastructure;
+package de.optimax_energy.bidder.auction.infrastructure.strategy;
 
 import de.optimax_energy.bidder.auction.api.BiddingStrategy;
 import de.optimax_energy.bidder.auction.api.dto.RoundResult;
+import de.optimax_energy.bidder.auction.api.dto.StrategyName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

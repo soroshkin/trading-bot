@@ -1,4 +1,4 @@
-package de.optimax_energy.bidder.auction.infrastructure;
+package de.optimax_energy.bidder.auction.api.dto;
 
 public enum StrategyName {
   ZERO_BID,

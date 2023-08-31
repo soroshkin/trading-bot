@@ -3,15 +3,15 @@ package de.optimax_energy.bidder.auction;
 import de.optimax_energy.bidder.auction.api.AuctionResultStorageOperations;
 import de.optimax_energy.bidder.auction.api.Bidder;
 import de.optimax_energy.bidder.auction.api.BiddingStrategy;
-import de.optimax_energy.bidder.auction.infrastructure.AggressiveBiddingStrategy;
-import de.optimax_energy.bidder.auction.infrastructure.DefaultBiddingStrategy;
-import de.optimax_energy.bidder.auction.infrastructure.MinimumBidStrategy;
-import de.optimax_energy.bidder.auction.infrastructure.StatisticsService;
-import de.optimax_energy.bidder.auction.infrastructure.StrategyFactory;
-import de.optimax_energy.bidder.auction.infrastructure.StrategyName;
+import de.optimax_energy.bidder.auction.infrastructure.strategy.AggressiveBiddingStrategy;
+import de.optimax_energy.bidder.auction.infrastructure.strategy.DefaultBiddingStrategy;
+import de.optimax_energy.bidder.auction.infrastructure.strategy.MinimumBidStrategy;
+import de.optimax_energy.bidder.auction.infrastructure.strategy.StatisticsService;
+import de.optimax_energy.bidder.auction.infrastructure.strategy.StrategyFactory;
+import de.optimax_energy.bidder.auction.api.dto.StrategyName;
 import de.optimax_energy.bidder.auction.infrastructure.TradingBot;
-import de.optimax_energy.bidder.auction.infrastructure.ZeroBiddingStrategy;
-import de.optimax_energy.bidder.auction.infrastructure.storage.AuctionResultInMemoryStorage;
+import de.optimax_energy.bidder.auction.infrastructure.strategy.ZeroBiddingStrategy;
+import de.optimax_energy.bidder.auction.infrastructure.storage.AuctionResultInMemoryStorageService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -76,7 +76,7 @@ public class BidderAutoConfiguration {
 
   @Bean
   public AuctionResultStorageOperations auctionResultStorageOperations() {
-    return new AuctionResultInMemoryStorage();
+    return new AuctionResultInMemoryStorageService();
   }
 
   @Bean

@@ -1,9 +1,8 @@
-package de.optimax_energy.bidder.auction.infrastructure;
+package de.optimax_energy.bidder.auction.infrastructure.strategy;
 
 import de.optimax_energy.bidder.auction.api.dto.RoundResult;
 
 import java.util.List;
-import java.util.Optional;
 
 public class StatisticsService {
 
@@ -29,14 +28,6 @@ public class StatisticsService {
     return initialCash - calculateMySpentCash(roundResults);
   }
 
-  public Optional<RoundResult> getLastRoundResult(List<RoundResult> roundResults) {
-    if (roundResults.isEmpty()) {
-      return Optional.empty();
-    }
-
-    return Optional.of(roundResults.get(roundResults.size() - 1));
-  }
-
   public int calculateOpponentRemainingCash(List<RoundResult> roundResults) {
     return roundResults.isEmpty() ? initialCash
       : roundResults.get(roundResults.size() - 1).getOpponentRemainingCash();
@@ -44,27 +35,19 @@ public class StatisticsService {
 
   public int calculateOpponentAverageBid(List<RoundResult> roundResults) {
     int numberOfLastBids = 3;
-    if (roundResults.size() >= numberOfLastBids) {
-      return roundResults.subList(roundResults.size() - numberOfLastBids, roundResults.size()).stream()
-        .map(RoundResult::getOpponentBid)
-        .mapToInt(o -> o)
-        .average()
-        .stream()
-        .mapToLong(Math::round)
-        .mapToInt(i -> (int) i)
-        .findFirst()
-        .orElse(0);
-    } else {
-      return roundResults.stream()
-        .map(RoundResult::getOpponentBid)
-        .mapToInt(o -> o)
-        .average()
-        .stream()
-        .mapToLong(Math::round)
-        .mapToInt(i -> (int) i)
-        .findFirst()
-        .orElse(0);
-    }
+    List<RoundResult> roundResultsForAverageCalculation = (roundResults.size() >= numberOfLastBids)
+      ? roundResults.subList(roundResults.size() - numberOfLastBids, roundResults.size())
+      : roundResults;
+
+    return roundResultsForAverageCalculation.stream()
+      .map(RoundResult::getOpponentBid)
+      .mapToInt(o -> o)
+      .average()
+      .stream()
+      .mapToLong(Math::round)
+      .mapToInt(i -> (int) i)
+      .findFirst()
+      .orElse(0);
   }
 
   private int calculateMySpentCash(List<RoundResult> roundResults) {

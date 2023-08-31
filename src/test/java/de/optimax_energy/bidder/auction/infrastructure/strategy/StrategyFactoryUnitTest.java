@@ -1,8 +1,11 @@
-package de.optimax_energy.bidder.auction.infrastructure;
+package de.optimax_energy.bidder.auction.infrastructure.strategy;
 
 import de.optimax_energy.bidder.UnitTest;
 import de.optimax_energy.bidder.auction.api.BiddingStrategy;
 import de.optimax_energy.bidder.auction.api.dto.RoundResult;
+import de.optimax_energy.bidder.auction.api.dto.StrategyName;
+import de.optimax_energy.bidder.auction.infrastructure.strategy.StatisticsService;
+import de.optimax_energy.bidder.auction.infrastructure.strategy.StrategyFactory;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
@@ -12,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static de.optimax_energy.bidder.auction.infrastructure.StrategyName.AGGRESSIVE;
+import static de.optimax_energy.bidder.auction.api.dto.StrategyName.AGGRESSIVE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;

@@ -1,7 +1,5 @@
 package de.optimax_energy.bidder.auction.api.dto;
 
-import de.optimax_energy.bidder.auction.infrastructure.StrategyName;
-
 public class RoundResult {
 
   private final int myBid;

@@ -2,7 +2,7 @@ package de.optimax_energy.bidder.auction;
 
 import de.optimax_energy.bidder.IntegrationTest;
 import de.optimax_energy.bidder.auction.api.Bidder;
-import de.optimax_energy.bidder.auction.infrastructure.StrategyFactory;
+import de.optimax_energy.bidder.auction.infrastructure.strategy.StrategyFactory;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

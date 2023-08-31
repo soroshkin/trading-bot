@@ -1,7 +1,8 @@
-package de.optimax_energy.bidder.auction.infrastructure;
+package de.optimax_energy.bidder.auction.infrastructure.strategy;
 
 import de.optimax_energy.bidder.auction.api.BiddingStrategy;
 import de.optimax_energy.bidder.auction.api.dto.RoundResult;
+import de.optimax_energy.bidder.auction.api.dto.StrategyName;
 
 import java.util.List;
 
@@ -31,10 +32,11 @@ public class DefaultBiddingStrategy implements BiddingStrategy {
 
   /**
    * According to article
+   * <a href="https://cs.brown.edu/courses/csci1440/lectures/2022/first_price_auctions.pdf">Bayes-Nash Equilibrium in the First-Price Auction</a>
+   * bidder maximizes his utility by bidding z=(n−1)/n*v, where n - number of bidders, v - estimation of product, in our case
+   * maximum average bid to win
    *
-   * @return amount of each bid
-   * @see <a href="https://cs.brown.edu/courses/csci1440/lectures/2022/first_price_auctions.pdf">Bayes-Nash Equilibrium in the First-Price Auction</a>
-   * bidder maximizes his utility by bidding  z=(n−1)/n*v
+   * @return bid
    */
   private int calculateAveragePriceOfBidToWin(List<RoundResult> roundResults) {
     int numberOfBidsToWin = (initialQuantity / AMOUNT_OF_PRODUCTS_IN_ONE_ROUND / 2) + 1;

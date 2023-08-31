@@ -1,7 +1,8 @@
-package de.optimax_energy.bidder.auction.infrastructure;
+package de.optimax_energy.bidder.auction.infrastructure.strategy;
 
 import de.optimax_energy.bidder.UnitTest;
 import de.optimax_energy.bidder.auction.api.dto.RoundResult;
+import de.optimax_energy.bidder.auction.infrastructure.strategy.MinimumBidStrategy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

@@ -4,7 +4,9 @@ import de.optimax_energy.bidder.auction.api.AuctionResultStorageOperations;
 import de.optimax_energy.bidder.auction.api.Bidder;
 import de.optimax_energy.bidder.auction.api.BiddingStrategy;
 import de.optimax_energy.bidder.auction.api.dto.RoundResult;
+import de.optimax_energy.bidder.auction.api.dto.StrategyName;
 import de.optimax_energy.bidder.auction.api.dto.StrategyNotFoundException;
+import de.optimax_energy.bidder.auction.infrastructure.strategy.StrategyFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +73,7 @@ public class TradingBot implements Bidder {
   @Override
   public void bids(int myBid, int opponentBid) {
     logger.info("My bid is {}, competitor's bid is {}", myBid, opponentBid);
-    auctionResultStorageOperations.addRoundResult(uuid, calculateRoundResult(myBid, opponentBid));
+    auctionResultStorageOperations.addRoundResultForBidder(uuid, calculateRoundResult(myBid, opponentBid));
   }
 
   private RoundResult calculateRoundResult(int myBid, int opponentBid) {

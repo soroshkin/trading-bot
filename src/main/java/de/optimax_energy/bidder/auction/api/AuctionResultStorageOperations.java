@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface AuctionResultStorageOperations {
 
-  void addRoundResult(String bidderUuid, RoundResult roundResult);
+  void addRoundResultForBidder(String bidderUuid, RoundResult roundResult);
 
   List<RoundResult> getRoundResultsForBidder(String bidderUuid);
 }

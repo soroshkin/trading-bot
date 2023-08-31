@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class AuctionResultInMemoryStorage implements AuctionResultStorageOperations {
+public class AuctionResultInMemoryStorageService implements AuctionResultStorageOperations {
 
   private final Map<String, List<RoundResult>> roundResults = new HashMap<>();
 
   @Override
-  public void addRoundResult(String bidderUuid, RoundResult roundResult) {
+  public void addRoundResultForBidder(String bidderUuid, RoundResult roundResult) {
     List<RoundResult> roundResultsOfBidder = roundResults.getOrDefault(bidderUuid, new LinkedList<>());
     roundResultsOfBidder.add(roundResult);
     roundResults.putIfAbsent(bidderUuid, roundResultsOfBidder);
