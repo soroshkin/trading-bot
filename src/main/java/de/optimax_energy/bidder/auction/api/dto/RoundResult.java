@@ -12,8 +12,6 @@ public class RoundResult {
 
   private final int opponentWonQuantity;
 
-  private final StrategyName strategyName;
-
   public static Builder builder() {
     return new Builder();
   }
@@ -25,7 +23,6 @@ public class RoundResult {
     this.opponentBid = builder.opponentBid;
     this.opponentRemainingCash = builder.opponentRemainingCash;
     this.opponentWonQuantity = builder.opponentWonQuantity;
-    this.strategyName = builder.strategyName;
   }
 
   public int getMyBid() {
@@ -48,10 +45,6 @@ public class RoundResult {
     return opponentRemainingCash;
   }
 
-  public StrategyName getStrategyName() {
-    return strategyName;
-  }
-
   @Override
   public String toString() {
     return "RoundResult{" +
@@ -60,7 +53,6 @@ public class RoundResult {
       ", opponentBid=" + opponentBid +
       ", opponentRemainingCash=" + opponentRemainingCash +
       ", opponentWonQuantity=" + opponentWonQuantity +
-      ", strategyName=" + strategyName +
       '}';
   }
 
@@ -75,8 +67,6 @@ public class RoundResult {
     private int opponentRemainingCash;
 
     private int opponentWonQuantity;
-
-    private StrategyName strategyName;
 
     private Builder() {
     }
@@ -103,11 +93,6 @@ public class RoundResult {
 
     public Builder withOpponentWonQuantity(int opponentWonQuantity) {
       this.opponentWonQuantity = opponentWonQuantity;
-      return this;
-    }
-
-    public Builder withStrategyName(StrategyName strategyName) {
-      this.strategyName = strategyName;
       return this;
     }
 

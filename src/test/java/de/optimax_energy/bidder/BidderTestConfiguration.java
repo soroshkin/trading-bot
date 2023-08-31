@@ -3,6 +3,7 @@ package de.optimax_energy.bidder;
 import de.optimax_energy.bidder.auction.api.AuctionResultStorageOperations;
 import de.optimax_energy.bidder.auction.api.Bidder;
 import de.optimax_energy.bidder.auction.infrastructure.TradingBot;
+import de.optimax_energy.bidder.auction.infrastructure.strategy.StatisticsService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -23,8 +24,8 @@ public class BidderTestConfiguration {
   }
 
   @Bean
-  public Bidder dummyBidder(AuctionResultStorageOperations auctionResultStorageOperations) {
-    TradingBot tradingBot = new TradingBot(null, auctionResultStorageOperations) {
+  public Bidder dummyBidder(AuctionResultStorageOperations auctionResultStorageOperations, StatisticsService statisticsService) {
+    TradingBot tradingBot = new TradingBot(null, auctionResultStorageOperations, statisticsService) {
       @Override
       public int placeBid() {
         int bid = initialCash / initialQuantity;
@@ -36,8 +37,8 @@ public class BidderTestConfiguration {
   }
 
   @Bean
-  public Bidder randomBidder(AuctionResultStorageOperations auctionResultStorageOperations) {
-    TradingBot tradingBot = new TradingBot(null, auctionResultStorageOperations) {
+  public Bidder randomBidder(AuctionResultStorageOperations auctionResultStorageOperations, StatisticsService statisticsService) {
+    TradingBot tradingBot = new TradingBot(null, auctionResultStorageOperations, statisticsService) {
       @Override
       public int placeBid() {
         int bid = new Random().nextInt(2 * initialCash / (initialQuantity / 2));
@@ -49,8 +50,8 @@ public class BidderTestConfiguration {
   }
 
   @Bean
-  public Bidder aggressiveBidder(AuctionResultStorageOperations auctionResultStorageOperations) {
-    TradingBot tradingBot = new TradingBot(null, auctionResultStorageOperations) {
+  public Bidder aggressiveBidder(AuctionResultStorageOperations auctionResultStorageOperations, StatisticsService statisticsService) {
+    TradingBot tradingBot = new TradingBot(null, auctionResultStorageOperations, statisticsService) {
       @Override
       public int placeBid() {
         int bid = initialCash / (initialQuantity / 2 - 20);

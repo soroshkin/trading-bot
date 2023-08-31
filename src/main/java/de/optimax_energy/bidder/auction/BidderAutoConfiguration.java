@@ -3,15 +3,15 @@ package de.optimax_energy.bidder.auction;
 import de.optimax_energy.bidder.auction.api.AuctionResultStorageOperations;
 import de.optimax_energy.bidder.auction.api.Bidder;
 import de.optimax_energy.bidder.auction.api.BiddingStrategy;
+import de.optimax_energy.bidder.auction.api.dto.StrategyName;
+import de.optimax_energy.bidder.auction.infrastructure.TradingBot;
+import de.optimax_energy.bidder.auction.infrastructure.storage.AuctionResultInMemoryStorageService;
 import de.optimax_energy.bidder.auction.infrastructure.strategy.AggressiveBiddingStrategy;
 import de.optimax_energy.bidder.auction.infrastructure.strategy.DefaultBiddingStrategy;
 import de.optimax_energy.bidder.auction.infrastructure.strategy.MinimumBidStrategy;
 import de.optimax_energy.bidder.auction.infrastructure.strategy.StatisticsService;
 import de.optimax_energy.bidder.auction.infrastructure.strategy.StrategyFactory;
-import de.optimax_energy.bidder.auction.api.dto.StrategyName;
-import de.optimax_energy.bidder.auction.infrastructure.TradingBot;
 import de.optimax_energy.bidder.auction.infrastructure.strategy.ZeroBiddingStrategy;
-import de.optimax_energy.bidder.auction.infrastructure.storage.AuctionResultInMemoryStorageService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -43,8 +43,8 @@ public class BidderAutoConfiguration {
   }
 
   @Bean
-  public Bidder tradingBot(StrategyFactory strategyFactory, AuctionResultStorageOperations auctionResultStorageOperations) {
-    TradingBot tradingBot = new TradingBot(strategyFactory, auctionResultStorageOperations);
+  public Bidder tradingBot(StrategyFactory strategyFactory, AuctionResultStorageOperations auctionResultStorageOperations, StatisticsService statisticsService) {
+    TradingBot tradingBot = new TradingBot(strategyFactory, auctionResultStorageOperations, statisticsService);
     tradingBot.init(initialQuantity, initialCash);
     return tradingBot;
   }

@@ -32,9 +32,7 @@ public class AggressiveBiddingStrategy implements BiddingStrategy {
     int myCurrentQuantity = statisticsService.calculateMyQuantity(roundResults);
     int remainingQuantity = initialQuantity - myCurrentQuantity - opponentQuantity;
     int myRemainingCash = statisticsService.calculateMyRemainingCash(roundResults);
-
     int requiredQuantityNotToLoose = initialQuantity / 2;
-    int requiredQuantityLeftNotToLoose = requiredQuantityNotToLoose - myCurrentQuantity;
     int opponentRemainingCash = statisticsService.calculateOpponentRemainingCash(roundResults);
 
     if (doesOpponentNeedOneQUToWin(requiredQuantityNotToLoose, opponentQuantity)) {
@@ -52,18 +50,9 @@ public class AggressiveBiddingStrategy implements BiddingStrategy {
       return opponentRemainingCash + 1;
     }
 
-    if (isCloseToLoose(requiredQuantityLeftNotToLoose, remainingQuantity)) {
-      bid = myRemainingCash / requiredQuantityLeftNotToLoose;
-    }
-
     return bid;
   }
 
-  private boolean isCloseToLoose(int requiredQuantityLeftNotToLoose, int remainingQuantity) {
-    double fractionOfBidsNeedToWin = 0.5;
-    return fractionOfBidsNeedToWin > requiredQuantityLeftNotToLoose * 1.0 / remainingQuantity
-      && requiredQuantityLeftNotToLoose != 0;
-  }
 
   private boolean isThereChanceToWin(int requiredQuantityNotToLoose, int myCurrentQuantity, int remainingQuantity) {
     return requiredQuantityNotToLoose <= myCurrentQuantity + remainingQuantity;
