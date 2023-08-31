@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class StrategyFactory {
 
@@ -16,55 +17,65 @@ public class StrategyFactory {
 
   private final Map<StrategyName, BiddingStrategy> auctionStrategies;
 
-  public StrategyFactory(Map<StrategyName, BiddingStrategy> auctionStrategies) {
+  private final StatisticsService statisticsService;
+
+  public StrategyFactory(Map<StrategyName, BiddingStrategy> auctionStrategies, StatisticsService statisticsService) {
     this.auctionStrategies = auctionStrategies;
+    this.statisticsService = statisticsService;
   }
 
-  public BiddingStrategy buildStrategy(int myCurrentQuantity, List<RoundResult> roundResults, int initialQuantity) {
-    if (isEnoughQuantityToWin(initialQuantity, myCurrentQuantity)) {
+  public Optional<BiddingStrategy> buildStrategy(int myCurrentQuantity, List<RoundResult> roundResults, int initialQuantity) {
+    int opponentQuantity = statisticsService.calculateOpponentQuantity(roundResults);
+    int remainingQuantity = initialQuantity - myCurrentQuantity - opponentQuantity;
+
+    if (isEnoughQuantityToWin(initialQuantity, myCurrentQuantity)
+      || isAlreadyLost(initialQuantity, myCurrentQuantity + remainingQuantity)) {
       logger.info("Zero bid strategy has been chosen");
-      return auctionStrategies.get(StrategyName.ZERO_BID);
+      return Optional.ofNullable(auctionStrategies.get(StrategyName.ZERO_BID));
     }
 
     if (roundResults.isEmpty()) {
       logger.info("First round bid strategy has been chosen");
-      return auctionStrategies.get(StrategyName.FIRST_ROUND);
+      return Optional.ofNullable(auctionStrategies.get(StrategyName.MINIMUM_BID));
+    }
+
+    if (!isEnoughQuantityToWin(initialQuantity, myCurrentQuantity) && opponentHasNoMoney(roundResults)) {
+      logger.info("Opponent has no money, I can spend minimal amount of money");
+      return Optional.ofNullable(auctionStrategies.get(StrategyName.MINIMUM_BID));
     }
 
     if (shouldBidMoreAggressively(initialQuantity, myCurrentQuantity, roundResults)) {
       logger.info("Looks like I am loosing, choosing more aggressive bid strategy");
-      return auctionStrategies.get(StrategyName.AGGRESSIVE);
+      return Optional.ofNullable(auctionStrategies.get(StrategyName.AGGRESSIVE));
     }
 
     BiddingStrategy strategy = auctionStrategies.get(StrategyName.DEFAULT);
-    logger.info("{} strategy has been chosen", strategy);
+    logger.info("Default strategy has been chosen");
 
-    return strategy;
+    return Optional.ofNullable(strategy);
+  }
+
+  private boolean opponentHasNoMoney(List<RoundResult> roundResults) {
+    return roundResults.get(roundResults.size() - 1).getOpponentRemainingCash() == 0;
   }
 
   private boolean isEnoughQuantityToWin(int initialQuantity, int myCurrentQuantity) {
     return myCurrentQuantity >= initialQuantity / 2 + 1;
   }
 
-  private boolean isEnoughQuantityNotToLoose(int initialQuantity, int myPotentialQuantity) {
-    return myPotentialQuantity >= initialQuantity / 2;
+  private boolean isAlreadyLost(int initialQuantity, int myPotentialQuantity) {
+    return myPotentialQuantity < initialQuantity / 2;
   }
 
   private boolean shouldBidMoreAggressively(int initialQuantity, int myCurrentQuantity, List<RoundResult> roundResults) {
-    int opponentQuantity = calculateOpponentQuantity(roundResults);
-    int leftQuantity = initialQuantity - myCurrentQuantity - opponentQuantity;
-    if (!isEnoughQuantityNotToLoose(initialQuantity, myCurrentQuantity + leftQuantity)) {
-      return false;
-    }
+    int opponentQuantity = statisticsService.calculateOpponentQuantity(roundResults);
+    int remainingQuantity = initialQuantity - myCurrentQuantity - opponentQuantity;
     int requiredQuantityNotToLoose = initialQuantity / 2;
-    int requiredQuantityLeftToWinNotToLoose = requiredQuantityNotToLoose - myCurrentQuantity;
+    int requiredQuantityLeftToWin = requiredQuantityNotToLoose + 1 - myCurrentQuantity;
+    int opponentRemainingCash = statisticsService.calculateOpponentRemainingCash(roundResults);
+    int myRemainingCash = statisticsService.calculateMyRemainingCash(roundResults);
 
-    return (leftQuantity - requiredQuantityLeftToWinNotToLoose) * 100.0 / leftQuantity <= AGGRESSIVE_STRATEGY_THRESHOLD;
-  }
-
-  private int calculateOpponentQuantity(List<RoundResult> roundResults) {
-    return roundResults.stream()
-      .map(RoundResult::getOpponentWonQuantity)
-      .reduce(0, Integer::sum);
+    return opponentQuantity > myCurrentQuantity && opponentRemainingCash > myRemainingCash
+      || requiredQuantityLeftToWin * 100.0 / remainingQuantity >= AGGRESSIVE_STRATEGY_THRESHOLD;
   }
 }

@@ -1,7 +1,6 @@
 package de.optimax_energy.bidder.auction.infrastructure;
 
 import de.optimax_energy.bidder.UnitTest;
-import de.optimax_energy.bidder.auction.api.AuctionResultStorageOperations;
 import de.optimax_energy.bidder.auction.api.BiddingStrategy;
 import de.optimax_energy.bidder.auction.api.dto.RoundResult;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -11,12 +10,13 @@ import org.mockito.Mock;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static de.optimax_energy.bidder.auction.infrastructure.StrategyName.AGGRESSIVE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 class StrategyFactoryUnitTest extends UnitTest {
@@ -27,7 +27,7 @@ class StrategyFactoryUnitTest extends UnitTest {
   private Map<StrategyName, BiddingStrategy> auctionStrategies;
 
   @Mock
-  private AuctionResultStorageOperations auctionResultStorageOperations;
+  private StatisticsService statisticsService;
 
   @InjectMocks
   private StrategyFactory strategyFactory;
@@ -39,15 +39,25 @@ class StrategyFactoryUnitTest extends UnitTest {
     int initialQuantity = calculateInitialQuantity(myWonQuantity, leftQuantity, opponentQuantity);
     BiddingStrategy givenStrategy = mock(BiddingStrategy.class);
     when(auctionStrategies.get(AGGRESSIVE)).thenReturn(givenStrategy);
-    List<RoundResult> roundResults = List.of(new RoundResult(0, 0, myWonQuantity, 0, opponentQuantity));
+    List<RoundResult> roundResults = List.of(
+      RoundResult.builder()
+        .withMyBid(5)
+        .withMyWonQuantity(myWonQuantity)
+        .withOpponentBid(0)
+        .withOpponentRemainingCash(INITIAL_CASH)
+        .withOpponentWonQuantity(opponentQuantity)
+        .build());
+    when(statisticsService.calculateOpponentRemainingCash(roundResults)).thenReturn(INITIAL_CASH);
+//    when(statisticsService.calculateMySpentCash(roundResults)).thenReturn(1);
 
     // when
-    BiddingStrategy biddingStrategy = strategyFactory.buildStrategy(myWonQuantity, roundResults, initialQuantity);
+    Optional<BiddingStrategy> biddingStrategy = strategyFactory.buildStrategy(myWonQuantity, roundResults, initialQuantity);
 
     // then
-    assertThat(biddingStrategy).isEqualTo(givenStrategy);
+    assertThat(biddingStrategy).isNotEmpty().isEqualTo(givenStrategy);
     verify(auctionStrategies).get(AGGRESSIVE);
-    verifyNoInteractions(auctionResultStorageOperations);
+    verify(statisticsService).calculateOpponentRemainingCash(roundResults);
+    verifyNoMoreInteractions(statisticsService);
   }
 
   private int calculateInitialQuantity(int myWonQuantity, int leftQuantity, int opponentQuantity) {

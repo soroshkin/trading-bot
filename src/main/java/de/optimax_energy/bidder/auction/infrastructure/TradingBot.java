@@ -2,6 +2,7 @@ package de.optimax_energy.bidder.auction.infrastructure;
 
 import de.optimax_energy.bidder.auction.api.AuctionResultStorageOperations;
 import de.optimax_energy.bidder.auction.api.Bidder;
+import de.optimax_energy.bidder.auction.api.BiddingStrategy;
 import de.optimax_energy.bidder.auction.api.dto.RoundResult;
 import de.optimax_energy.bidder.auction.api.dto.StrategyNotFoundException;
 import org.slf4j.Logger;
@@ -31,6 +32,8 @@ public class TradingBot implements Bidder {
 
   private final String uuid;
 
+  private RoundResult lastRoundResult;
+
   public TradingBot(StrategyFactory strategyFactory, AuctionResultStorageOperations auctionResultStorageOperations) {
     this.strategyFactory = strategyFactory;
     this.auctionResultStorageOperations = auctionResultStorageOperations;
@@ -48,14 +51,19 @@ public class TradingBot implements Bidder {
   @Override
   public int placeBid() {
     List<RoundResult> roundResults = auctionResultStorageOperations.getRoundResultsForBidder(uuid);
-    int bid = Optional.ofNullable(strategyFactory.buildStrategy(quantity, roundResults, initialQuantity))
-      .map(biddingStrategy -> biddingStrategy.placeBid(roundResults))
+    BiddingStrategy selectedStrategy = strategyFactory.buildStrategy(quantity, roundResults, initialQuantity)
       .orElseThrow(() -> new StrategyNotFoundException("Could not select strategy"));
+    int bid = selectedStrategy.placeBid(roundResults);
 
     if (bid > remainingCash) {
       logger.warn("Not enough money for a bid: required {}, remains {}, will spend everything", bid, remainingCash);
       bid = remainingCash;
     }
+
+    lastRoundResult = RoundResult.builder()
+      .withStrategyName(selectedStrategy.getStrategyName())
+      .withMyBid(bid)
+      .build();
 
     return bid;
   }
@@ -67,28 +75,62 @@ public class TradingBot implements Bidder {
   }
 
   private RoundResult calculateRoundResult(int myBid, int opponentBid) {
+    int opponentRemainingCashInLastRound = getOpponentRemainingCash(auctionResultStorageOperations.getRoundResultsForBidder(uuid));
+    StrategyName strategyName = getStrategyNameFromLastRoundResult(myBid);
+
     if (myBid > opponentBid) {
       quantity += AMOUNT_OF_PRODUCTS_IN_ONE_ROUND;
       remainingCash -= myBid;
-      return new RoundResult(myBid, myBid, AMOUNT_OF_PRODUCTS_IN_ONE_ROUND, opponentBid, 0);
+      int opponentRemainingCash = opponentRemainingCashInLastRound - opponentBid;
+      return RoundResult.builder()
+        .withMyBid(myBid)
+        .withMyWonQuantity(AMOUNT_OF_PRODUCTS_IN_ONE_ROUND)
+        .withOpponentBid(opponentBid)
+        .withOpponentRemainingCash(opponentRemainingCash)
+        .withOpponentWonQuantity(0)
+        .withStrategyName(strategyName)
+        .build();
     }
 
     if (myBid == opponentBid) {
       quantity += AMOUNT_OF_PRODUCTS_IN_ONE_ROUND / 2;
-      remainingCash -= myBid / 2;
-      return new RoundResult(myBid, myBid / 2, AMOUNT_OF_PRODUCTS_IN_ONE_ROUND / 2, opponentBid, AMOUNT_OF_PRODUCTS_IN_ONE_ROUND / 2);
+      remainingCash -= myBid;
+      int opponentRemainingCash = opponentRemainingCashInLastRound - opponentBid;
+      return RoundResult.builder()
+        .withMyBid(myBid)
+        .withMyWonQuantity(AMOUNT_OF_PRODUCTS_IN_ONE_ROUND / 2)
+        .withOpponentBid(opponentBid)
+        .withOpponentRemainingCash(opponentRemainingCash)
+        .withOpponentWonQuantity(AMOUNT_OF_PRODUCTS_IN_ONE_ROUND / 2)
+        .withStrategyName(strategyName)
+        .build();
     } else {
       remainingCash -= myBid;
-      return new RoundResult(myBid, myBid, 0, opponentBid, AMOUNT_OF_PRODUCTS_IN_ONE_ROUND);
+      int opponentRemainingCash = opponentRemainingCashInLastRound - opponentBid;
+      return RoundResult.builder()
+        .withMyBid(myBid)
+        .withMyWonQuantity(0)
+        .withOpponentBid(opponentBid)
+        .withOpponentRemainingCash(opponentRemainingCash)
+        .withOpponentWonQuantity(AMOUNT_OF_PRODUCTS_IN_ONE_ROUND)
+        .withStrategyName(strategyName)
+        .build();
     }
   }
 
-  public Integer getInitialQuantity() {
-    return initialQuantity;
+  private StrategyName getStrategyNameFromLastRoundResult(int myBid) {
+    return (lastRoundResult != null
+      && myBid == lastRoundResult.getMyBid()
+      && lastRoundResult.getStrategyName() != null)
+      ? lastRoundResult.getStrategyName()
+      : StrategyName.UNKNOWN;
   }
 
-  public Integer getInitialCash() {
-    return initialCash;
+  private int getOpponentRemainingCash(List<RoundResult> roundResults) {
+    return roundResults.isEmpty() ? initialCash
+      : Optional.ofNullable(roundResults.get(roundResults.size() - 1))
+      .map(RoundResult::getOpponentRemainingCash)
+      .orElseGet(() -> initialCash);
   }
 
   public Integer getQuantity() {

@@ -40,7 +40,7 @@ public class BidderTestConfiguration {
     TradingBot tradingBot = new TradingBot(null, auctionResultStorageOperations) {
       @Override
       public int placeBid() {
-        int bid = new Random().nextInt(initialCash / initialQuantity * 2);
+        int bid = new Random().nextInt(2 * initialCash / (initialQuantity / 2));
         return this.getRemainingCash() < bid ? this.getRemainingCash() : bid;
       }
     };
@@ -53,7 +53,7 @@ public class BidderTestConfiguration {
     TradingBot tradingBot = new TradingBot(null, auctionResultStorageOperations) {
       @Override
       public int placeBid() {
-        int bid = initialCash / (initialQuantity / 2 - 1);
+        int bid = initialCash / (initialQuantity / 2 - 20);
         return this.getRemainingCash() < bid ? this.getRemainingCash() : bid;
       }
     };

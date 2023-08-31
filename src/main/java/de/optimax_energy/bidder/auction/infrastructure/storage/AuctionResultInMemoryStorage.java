@@ -18,6 +18,7 @@ public class AuctionResultInMemoryStorage implements AuctionResultStorageOperati
   public void addRoundResult(String bidderUuid, RoundResult roundResult) {
     List<RoundResult> roundResultsOfBidder = roundResults.getOrDefault(bidderUuid, new LinkedList<>());
     roundResultsOfBidder.add(roundResult);
+    roundResults.putIfAbsent(bidderUuid, roundResultsOfBidder);
   }
 
   @Override

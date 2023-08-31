@@ -2,12 +2,14 @@ package de.optimax_energy.bidder.auction;
 
 import de.optimax_energy.bidder.BidderTestConfiguration;
 import de.optimax_energy.bidder.IntegrationTest;
+import de.optimax_energy.bidder.auction.api.AuctionResultStorageOperations;
 import de.optimax_energy.bidder.auction.api.Bidder;
 import de.optimax_energy.bidder.auction.infrastructure.TradingBot;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
@@ -16,6 +18,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ContextConfiguration(classes = {BidderTestConfiguration.class, BidderAutoConfiguration.class})
 class AuctionIntegrationTest extends IntegrationTest {
+
+  private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private static final int AMOUNT_OF_PRODUCTS_IN_ONE_ROUND = 2;
 
@@ -35,92 +39,104 @@ class AuctionIntegrationTest extends IntegrationTest {
   @Qualifier("aggressiveBidder")
   private TradingBot aggressiveBidder;
 
+  @Autowired
+  private AuctionResultStorageOperations auctionResultStorageOperations;
+
   @BeforeEach
   void setUp() {
     tradingBot.init(initialQuantity, initialCash);
     dummyBidder.init(initialQuantity, initialCash);
     randomBidder.init(initialQuantity, initialCash);
+    auctionResultStorageOperations.getRoundResultsForBidder(tradingBot.getUuid()).clear();
   }
 
   @Test
-  @DisplayName("should win dummy bidder")
+  @DisplayName("Should win dummy bidder")
   void shouldWinDummyBidder() {
-    // given
-    int quantityLeft = initialQuantity;
-
     // when
-    Bidder bidder = startAuction(quantityLeft, tradingBot, dummyBidder);
+    Bidder bidder = startAuction(tradingBot, dummyBidder);
 
     // then
-    assertThat(bidder).isInstanceOf(TradingBot.class);
+    assertThat(bidder.getClass()).isEqualTo(TradingBot.class);
   }
 
   @Test
-  @DisplayName("should win random bidder")
+  @DisplayName("Should win aggressive random bidder bot more than in half of auctions")
   void shouldWinRandomBidder() {
     // given
-    int quantityLeft = initialQuantity;
+    // the number of auctions should be large enough to exclude randomness in results
+    int numberOfTests = 100;
 
     // when
-    Bidder bidder = startAuction(quantityLeft, tradingBot, randomBidder);
+    int numberOfTradingBotWins = runAuctionMultipleTimesAndReturnNumberOfWinsOfFirstBidder(tradingBot, randomBidder, numberOfTests);
 
     // then
-    assertThat(bidder).isInstanceOf(TradingBot.class);
+    assertThat(numberOfTradingBotWins * 100 / numberOfTests).isGreaterThan(50);
   }
 
   @Test
-  @DisplayName("should win aggressive bidder")
+  @DisplayName("Should win aggressive bidder")
   void shouldWinAggressiveBidder() {
-    // given
-    int quantityLeft = initialQuantity;
-
     // when
-    Bidder bidder = startAuction(quantityLeft, tradingBot, aggressiveBidder);
+    Bidder bidder = startAuction(tradingBot, aggressiveBidder);
 
     // then
-    assertThat(bidder).isInstanceOf(TradingBot.class);
+    assertThat(bidder.getClass()).isEqualTo(TradingBot.class);
   }
 
-  private Bidder startAuction(int quantityToPlay, TradingBot tradingBot, TradingBot dummyBidder) {
-    while (quantityToPlay >= AMOUNT_OF_PRODUCTS_IN_ONE_ROUND
-      && (tradingBot.getRemainingCash() > 0 || dummyBidder.getRemainingCash() > 0)) {
+  private Bidder startAuction(TradingBot tradingBot, TradingBot dummyBot) {
+    int iterationIndex = 1;
+    int quantityToPlay = initialQuantity;
+    while (quantityToPlay >= AMOUNT_OF_PRODUCTS_IN_ONE_ROUND) {
       int tradingBotBid = tradingBot.placeBid();
-      int dummyBidderBid = dummyBidder.placeBid();
+      int dummyBidderBid = dummyBot.placeBid();
 
       tradingBot.bids(tradingBotBid, dummyBidderBid);
-      dummyBidder.bids(dummyBidderBid, tradingBotBid);
+      dummyBot.bids(dummyBidderBid, tradingBotBid);
       quantityToPlay -= AMOUNT_OF_PRODUCTS_IN_ONE_ROUND;
+
+      logger.info("Iteration {}. Trading bot remaining cash: {}, dummy bot remaining cash: {}", iterationIndex, tradingBot.getRemainingCash(), dummyBot.getRemainingCash());
+      logger.info("Iteration {}. Trading bot quantity: {}, dummy bot quantity: {}", iterationIndex, tradingBot.getQuantity(), dummyBot.getQuantity());
+      iterationIndex++;
     }
 
-    printBidders(tradingBot, dummyBidder);
-    return chooseWinner(tradingBot, dummyBidder);
+    return chooseWinner(tradingBot, dummyBot);
+  }
+
+  private int runAuctionMultipleTimesAndReturnNumberOfWinsOfFirstBidder(TradingBot tradingBot, TradingBot randomBidder, int numberOfTests) {
+    int numberOfTradingBotWins = 0;
+    for (int i = 0; i < numberOfTests; i++) {
+      setUp();
+      Bidder bidder = startAuction(tradingBot, randomBidder);
+      if (bidder != null && bidder.getClass().equals(TradingBot.class)) {
+        numberOfTradingBotWins++;
+      }
+      logger.info("number of wins {}", numberOfTradingBotWins);
+    }
+    return numberOfTradingBotWins;
   }
 
   private Bidder chooseWinner(TradingBot firstBidder, TradingBot secondBidder) {
     if (firstBidder.getQuantity() > secondBidder.getQuantity()) {
       return firstBidder;
     }
+
     if (firstBidder.getQuantity() < secondBidder.getQuantity()) {
       return secondBidder;
-    } else {
-      return chooseWinnerBasedOnLeftAmountOfCash(firstBidder, secondBidder);
     }
+
+    return chooseWinnerBasedOnLeftAmountOfCash(firstBidder, secondBidder);
   }
 
   private Bidder chooseWinnerBasedOnLeftAmountOfCash(TradingBot firstBidder, TradingBot secondBidder) {
     if (firstBidder.getRemainingCash() > secondBidder.getRemainingCash()) {
       return firstBidder;
     }
+
     if (firstBidder.getRemainingCash() < secondBidder.getRemainingCash()) {
       return secondBidder;
-    } else {
-      Assertions.fail("Both bidders have same amount of product and money");
-      return null;
     }
-  }
 
-  private void printBidders(Bidder firstBidder, Bidder secondBidder) {
-    System.out.println(firstBidder);
-    System.out.println(secondBidder);
+    return null;
   }
 }

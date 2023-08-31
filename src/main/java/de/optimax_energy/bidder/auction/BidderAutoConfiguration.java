@@ -5,7 +5,7 @@ import de.optimax_energy.bidder.auction.api.Bidder;
 import de.optimax_energy.bidder.auction.api.BiddingStrategy;
 import de.optimax_energy.bidder.auction.infrastructure.AggressiveBiddingStrategy;
 import de.optimax_energy.bidder.auction.infrastructure.DefaultBiddingStrategy;
-import de.optimax_energy.bidder.auction.infrastructure.FirstRoundStrategy;
+import de.optimax_energy.bidder.auction.infrastructure.MinimumBidStrategy;
 import de.optimax_energy.bidder.auction.infrastructure.StatisticsService;
 import de.optimax_energy.bidder.auction.infrastructure.StrategyFactory;
 import de.optimax_energy.bidder.auction.infrastructure.StrategyName;
@@ -32,11 +32,14 @@ public class BidderAutoConfiguration {
   }
 
   @Bean
-  public Map<StrategyName, BiddingStrategy> auctionStrategies(StatisticsService statisticsService) {
-    return Map.of(StrategyName.FIRST_ROUND, firstRoundStrategy(),
-      StrategyName.ZERO_BID, zeroBiddingStrategy(),
-      StrategyName.AGGRESSIVE, aggressiveBiddingStrategy(statisticsService),
-      StrategyName.DEFAULT, defaultBiddingStrategy());
+  public Map<StrategyName, BiddingStrategy> auctionStrategies(BiddingStrategy zeroBiddingStrategy,
+                                                              BiddingStrategy aggressiveBiddingStrategy,
+                                                              BiddingStrategy minimumBidStrategy,
+                                                              BiddingStrategy defaultBiddingStrategy) {
+    return Map.of(zeroBiddingStrategy.getStrategyName(), zeroBiddingStrategy,
+      aggressiveBiddingStrategy.getStrategyName(), aggressiveBiddingStrategy,
+      minimumBidStrategy.getStrategyName(), minimumBidStrategy,
+      defaultBiddingStrategy.getStrategyName(), defaultBiddingStrategy);
   }
 
   @Bean
@@ -47,28 +50,28 @@ public class BidderAutoConfiguration {
   }
 
   @Bean
-  public StrategyFactory strategyFactory(Map<StrategyName, BiddingStrategy> auctionStrategies) {
-    return new StrategyFactory(auctionStrategies);
+  public StrategyFactory strategyFactory(Map<StrategyName, BiddingStrategy> auctionStrategies, StatisticsService statisticsService) {
+    return new StrategyFactory(auctionStrategies, statisticsService);
   }
 
   @Bean
-  public BiddingStrategy firstRoundStrategy() {
-    return new FirstRoundStrategy(initialQuantity, initialCash);
-  }
-
-  @Bean
-  public ZeroBiddingStrategy zeroBiddingStrategy() {
+  public BiddingStrategy zeroBiddingStrategy() {
     return new ZeroBiddingStrategy();
   }
 
   @Bean
   public BiddingStrategy aggressiveBiddingStrategy(StatisticsService statisticsService) {
-    return new AggressiveBiddingStrategy(initialQuantity, initialCash, statisticsService);
+    return new AggressiveBiddingStrategy(initialQuantity, statisticsService);
   }
 
   @Bean
-  public DefaultBiddingStrategy defaultBiddingStrategy() {
-    return new DefaultBiddingStrategy(initialQuantity, initialCash);
+  public BiddingStrategy minimumBidStrategy() {
+    return new MinimumBidStrategy();
+  }
+
+  @Bean
+  public BiddingStrategy defaultBiddingStrategy(StatisticsService statisticsService) {
+    return new DefaultBiddingStrategy(initialQuantity, initialCash, statisticsService);
   }
 
   @Bean
@@ -78,6 +81,6 @@ public class BidderAutoConfiguration {
 
   @Bean
   public StatisticsService statisticsService() {
-    return new StatisticsService();
+    return new StatisticsService(initialCash);
   }
 }
