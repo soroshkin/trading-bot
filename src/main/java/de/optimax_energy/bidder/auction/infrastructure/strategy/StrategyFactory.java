@@ -25,12 +25,12 @@ public class StrategyFactory {
     this.statisticsService = statisticsService;
   }
 
-  public Optional<BiddingStrategy> buildStrategy(int myCurrentQuantity, List<RoundResult> roundResults, int initialQuantity) {
+  public Optional<BiddingStrategy> buildStrategy(int myWonQuantity, List<RoundResult> roundResults, int initialQuantity) {
     int opponentQuantity = statisticsService.calculateOpponentQuantity(roundResults);
-    int remainingQuantity = initialQuantity - myCurrentQuantity - opponentQuantity;
+    int remainingQuantity = initialQuantity - myWonQuantity - opponentQuantity;
 
-    if (isEnoughQuantityToWin(initialQuantity, myCurrentQuantity)
-      || isAlreadyLost(initialQuantity, myCurrentQuantity + remainingQuantity)) {
+    if (isEnoughQuantityToWin(initialQuantity, myWonQuantity)
+      || isAlreadyLost(initialQuantity, myWonQuantity + remainingQuantity)) {
       logger.info("Zero bid strategy has been chosen");
       return Optional.ofNullable(auctionStrategies.get(StrategyName.ZERO_BID));
     }
@@ -40,12 +40,12 @@ public class StrategyFactory {
       return Optional.ofNullable(auctionStrategies.get(StrategyName.MINIMUM_BID));
     }
 
-    if (!isEnoughQuantityToWin(initialQuantity, myCurrentQuantity) && opponentHasNoMoney(roundResults)) {
+    if (!isEnoughQuantityToWin(initialQuantity, myWonQuantity) && opponentHasNoMoney(roundResults)) {
       logger.info("Opponent has no money, I can spend minimal amount of money");
       return Optional.ofNullable(auctionStrategies.get(StrategyName.MINIMUM_BID));
     }
 
-    if (shouldBidMoreAggressively(initialQuantity, myCurrentQuantity, roundResults)) {
+    if (shouldBidMoreAggressively(initialQuantity, myWonQuantity, roundResults)) {
       logger.info("Looks like I am loosing, choosing more aggressive bid strategy");
       return Optional.ofNullable(auctionStrategies.get(StrategyName.AGGRESSIVE));
     }
@@ -60,8 +60,8 @@ public class StrategyFactory {
     return roundResults.get(roundResults.size() - 1).getOpponentRemainingCash() == 0;
   }
 
-  private boolean isEnoughQuantityToWin(int initialQuantity, int myCurrentQuantity) {
-    return myCurrentQuantity >= initialQuantity / 2 + 1;
+  private boolean isEnoughQuantityToWin(int initialQuantity, int myWonQuantity) {
+    return myWonQuantity >= initialQuantity / 2 + 1;
   }
 
   private boolean isAlreadyLost(int initialQuantity, int myPotentialQuantity) {
