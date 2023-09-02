@@ -57,7 +57,7 @@ class AuctionIntegrationTest extends IntegrationTest {
     Bidder bidder = startAuction(tradingBot, dummyBidder);
 
     // then
-    assertThat(bidder.getClass()).isEqualTo(TradingBot.class);
+    assertThat(bidder).isEqualTo(tradingBot);
   }
 
   @Test
@@ -81,7 +81,7 @@ class AuctionIntegrationTest extends IntegrationTest {
     Bidder bidder = startAuction(tradingBot, aggressiveBidder);
 
     // then
-    assertThat(bidder.getClass()).isEqualTo(TradingBot.class);
+    assertThat(bidder).isEqualTo(tradingBot);
   }
 
   private Bidder startAuction(TradingBot tradingBot, TradingBot dummyBot) {
@@ -95,8 +95,8 @@ class AuctionIntegrationTest extends IntegrationTest {
       dummyBot.bids(dummyBidderBid, tradingBotBid);
       quantityToPlay -= AMOUNT_OF_PRODUCTS_IN_ONE_ROUND;
 
-      logger.info("Iteration {}. Trading bot remaining cash: {}, dummy bot remaining cash: {}", iterationIndex, tradingBot.getRemainingCash(), dummyBot.getRemainingCash());
-      logger.info("Iteration {}. Trading bot quantity: {}, dummy bot quantity: {}", iterationIndex, tradingBot.getQuantity(), dummyBot.getQuantity());
+      logger.info("Round {}. Trading bot remaining cash: {}, dummy bot remaining cash: {}", iterationIndex, tradingBot.getRemainingCash(), dummyBot.getRemainingCash());
+      logger.info("Round {}. Trading bot quantity: {}, dummy bot quantity: {}", iterationIndex, tradingBot.getQuantity(), dummyBot.getQuantity());
       iterationIndex++;
     }
 
@@ -108,11 +108,12 @@ class AuctionIntegrationTest extends IntegrationTest {
     for (int i = 0; i < numberOfTests; i++) {
       setUp();
       Bidder bidder = startAuction(tradingBot, randomBidder);
-      if (bidder != null && bidder.getClass().equals(TradingBot.class)) {
+      if (bidder != null && bidder.equals(tradingBot)) {
         numberOfTradingBotWins++;
       }
       logger.info("number of wins {}", numberOfTradingBotWins);
     }
+
     return numberOfTradingBotWins;
   }
 

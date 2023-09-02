@@ -13,9 +13,9 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.UUID;
 
-public class TradingBot implements Bidder {
+import static de.optimax_energy.bidder.auction.api.BiddingStrategy.AMOUNT_OF_PRODUCTS_IN_ONE_ROUND;
 
-  private static final int AMOUNT_OF_PRODUCTS_IN_ONE_ROUND = 2;
+public class TradingBot implements Bidder {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 

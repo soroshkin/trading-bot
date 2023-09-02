@@ -61,7 +61,7 @@ public class BidderTestConfiguration {
     TradingBot testBidder = new TradingBot(null, auctionResultStorageOperations, statisticsService) {
       @Override
       public int placeBid() {
-        int bid = initialCash / (initialQuantity / 2 - 20);
+        int bid = initialCash / (initialQuantity / 2 - 1);
         return Math.min(getRemainingCash(), bid);
       }
     };
