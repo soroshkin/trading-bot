@@ -39,11 +39,13 @@ public class AggressiveBiddingStrategy implements BiddingStrategy {
       return Math.min(opponentRemainingCash + 1, myRemainingCash);
     }
 
-    // the assumption is if the bid ~1.34 times higher than average, then bot will win in ~84% of cases
+    // the assumption is if the bid ~1.34 times higher than average, then bot's bid should be higher in ~84% of cases
     // due to normal distribution of the opponent's bids
     double oneSigmaMultiplier = 1.34;
+    int maxBidMultiplier = 2;
+    int maxBid = maxBidMultiplier * (myRemainingCash / (requiredQuantityNotToLoose / AMOUNT_OF_PRODUCTS_IN_ONE_ROUND));
     int opponentAverageBid = statisticsService.calculateOpponentAverageBid(roundResults);
-    int bid = (int) (opponentAverageBid * oneSigmaMultiplier);
+    int bid = Math.min((int) (opponentAverageBid * oneSigmaMultiplier), maxBid);
 
     if (isThereChanceToWin(requiredQuantityNotToLoose, myCurrentQuantity, remainingQuantity)
       && opponentRemainingCash < bid) {

@@ -67,8 +67,7 @@ public class TradingBot implements Bidder {
   }
 
   private RoundResult calculateRoundResult(int myBid, int opponentBid) {
-    int opponentRemainingCashInLastRound = statisticsService.calculateMyRemainingCash(auctionResultStorageOperations.getRoundResultsForBidder(uuid));
-    int opponentRemainingCash = opponentRemainingCashInLastRound - opponentBid;
+    int opponentRemainingCash = statisticsService.calculateOpponentRemainingCash(auctionResultStorageOperations.getRoundResultsForBidder(uuid));
     remainingCash -= myBid;
 
     if (myBid > opponentBid) {

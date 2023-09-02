@@ -3,10 +3,9 @@ plugins {
 }
 
 group 'de.optimax_energy'
-version '1.0-SNAPSHOT'
 
-sourceCompatibility = 20
-targetCompatibility = 20
+sourceCompatibility = 17
+targetCompatibility = 17
 
 repositories {
     mavenCentral()

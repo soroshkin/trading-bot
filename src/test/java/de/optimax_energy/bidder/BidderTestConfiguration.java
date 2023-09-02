@@ -13,7 +13,11 @@ import java.util.Random;
 @TestConfiguration
 public class BidderTestConfiguration {
 
+  private static final int AMOUNT_OF_PRODUCTS_IN_ONE_ROUND = 2;
+
   private final Integer initialQuantity;
+
+  private final Integer halfOfBidsToWin;
 
   private final Integer initialCash;
 
@@ -21,44 +25,48 @@ public class BidderTestConfiguration {
                                  @Value("${bidder.cash}") Integer initialCash) {
     this.initialQuantity = initialQuantity;
     this.initialCash = initialCash;
+    this.halfOfBidsToWin = initialQuantity / AMOUNT_OF_PRODUCTS_IN_ONE_ROUND - 1;
   }
 
   @Bean
   public Bidder dummyBidder(AuctionResultStorageOperations auctionResultStorageOperations, StatisticsService statisticsService) {
-    TradingBot tradingBot = new TradingBot(null, auctionResultStorageOperations, statisticsService) {
+    TradingBot testBidder = new TradingBot(null, auctionResultStorageOperations, statisticsService) {
       @Override
       public int placeBid() {
         int bid = initialCash / initialQuantity;
-        return this.getRemainingCash() < bid ? this.getRemainingCash() : bid;
+        return Math.min(getRemainingCash(), bid);
       }
     };
-    tradingBot.init(initialQuantity, initialCash);
-    return tradingBot;
+    testBidder.init(initialQuantity, initialCash);
+
+    return testBidder;
   }
 
   @Bean
   public Bidder randomBidder(AuctionResultStorageOperations auctionResultStorageOperations, StatisticsService statisticsService) {
-    TradingBot tradingBot = new TradingBot(null, auctionResultStorageOperations, statisticsService) {
+    TradingBot testBidder = new TradingBot(null, auctionResultStorageOperations, statisticsService) {
       @Override
       public int placeBid() {
-        int bid = new Random().nextInt(2 * initialCash / (initialQuantity / 2));
-        return this.getRemainingCash() < bid ? this.getRemainingCash() : bid;
+        int bid = (int) new Random().nextDouble(1.5 * initialCash / halfOfBidsToWin);
+        return Math.min(getRemainingCash(), bid);
       }
     };
-    tradingBot.init(initialQuantity, initialCash);
-    return tradingBot;
+    testBidder.init(initialQuantity, initialCash);
+
+    return testBidder;
   }
 
   @Bean
   public Bidder aggressiveBidder(AuctionResultStorageOperations auctionResultStorageOperations, StatisticsService statisticsService) {
-    TradingBot tradingBot = new TradingBot(null, auctionResultStorageOperations, statisticsService) {
+    TradingBot testBidder = new TradingBot(null, auctionResultStorageOperations, statisticsService) {
       @Override
       public int placeBid() {
         int bid = initialCash / (initialQuantity / 2 - 20);
-        return this.getRemainingCash() < bid ? this.getRemainingCash() : bid;
+        return Math.min(getRemainingCash(), bid);
       }
     };
-    tradingBot.init(initialQuantity, initialCash);
-    return tradingBot;
+    testBidder.init(initialQuantity, initialCash);
+
+    return testBidder;
   }
 }
