@@ -2,7 +2,6 @@ package de.optimax_energy.bidder.auction.infrastructure.strategy;
 
 import de.optimax_energy.bidder.UnitTest;
 import de.optimax_energy.bidder.auction.api.dto.RoundResult;
-import de.optimax_energy.bidder.auction.infrastructure.strategy.ZeroBiddingStrategy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -22,7 +21,7 @@ class ZeroBiddingStrategyUnitTest extends UnitTest {
     List<RoundResult> roundResults = Collections.emptyList();
 
     // when
-    int bid = zeroBiddingStrategy.placeBid(roundResults);
+    int bid = zeroBiddingStrategy.placeBid(roundResults, 0, 0);
 
     // then
     assertThat(bid).isZero();

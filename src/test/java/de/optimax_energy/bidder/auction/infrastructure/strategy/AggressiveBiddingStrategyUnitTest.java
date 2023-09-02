@@ -27,7 +27,7 @@ class AggressiveBiddingStrategyUnitTest extends UnitTest {
 
   @BeforeEach
   void setUp() {
-    aggressiveBiddingStrategy = new AggressiveBiddingStrategy(INITIAL_QUANTITY, statisticsService);
+    aggressiveBiddingStrategy = new AggressiveBiddingStrategy(statisticsService);
   }
 
   @Test
@@ -36,18 +36,18 @@ class AggressiveBiddingStrategyUnitTest extends UnitTest {
     // given
     List<RoundResult> roundResults = givenRoundResults();
     int opponentRemainingCash = 1;
-    when(statisticsService.calculateOpponentRemainingCash(roundResults)).thenReturn(opponentRemainingCash);
+    when(statisticsService.calculateOpponentRemainingCash(roundResults, INITIAL_CASH)).thenReturn(opponentRemainingCash);
     when(statisticsService.calculateOpponentQuantity(roundResults)).thenReturn(INITIAL_QUANTITY / 2);
-    when(statisticsService.calculateMyRemainingCash(roundResults)).thenReturn(INITIAL_CASH);
+    when(statisticsService.calculateMyRemainingCash(roundResults, INITIAL_CASH)).thenReturn(INITIAL_CASH);
 
     // when
-    int bid = aggressiveBiddingStrategy.placeBid(roundResults);
+    int bid = aggressiveBiddingStrategy.placeBid(roundResults, INITIAL_QUANTITY, INITIAL_CASH);
 
     // then
     assertThat(bid).isEqualTo(opponentRemainingCash + 1);
-    verify(statisticsService).calculateOpponentRemainingCash(roundResults);
+    verify(statisticsService).calculateOpponentRemainingCash(roundResults, INITIAL_CASH);
     verify(statisticsService).calculateOpponentQuantity(roundResults);
-    verify(statisticsService).calculateMyRemainingCash(roundResults);
+    verify(statisticsService).calculateMyRemainingCash(roundResults, INITIAL_CASH);
     verify(statisticsService).calculateMyQuantity(roundResults);
     verifyNoMoreInteractions(statisticsService);
   }
@@ -57,18 +57,18 @@ class AggressiveBiddingStrategyUnitTest extends UnitTest {
   void shouldReturnBidWhichEqualsToRemainingCash() {
     // given
     List<RoundResult> roundResults = givenRoundResults();
-    when(statisticsService.calculateOpponentRemainingCash(roundResults)).thenReturn(INITIAL_CASH);
+    when(statisticsService.calculateOpponentRemainingCash(roundResults, INITIAL_CASH)).thenReturn(INITIAL_CASH);
     when(statisticsService.calculateOpponentQuantity(roundResults)).thenReturn(INITIAL_QUANTITY / 2);
-    when(statisticsService.calculateMyRemainingCash(roundResults)).thenReturn(INITIAL_CASH);
+    when(statisticsService.calculateMyRemainingCash(roundResults, INITIAL_CASH)).thenReturn(INITIAL_CASH);
 
     // when
-    int bid = aggressiveBiddingStrategy.placeBid(roundResults);
+    int bid = aggressiveBiddingStrategy.placeBid(roundResults, INITIAL_QUANTITY, INITIAL_CASH);
 
     // then
     assertThat(bid).isEqualTo(INITIAL_CASH);
-    verify(statisticsService).calculateOpponentRemainingCash(roundResults);
+    verify(statisticsService).calculateOpponentRemainingCash(roundResults, INITIAL_CASH);
     verify(statisticsService).calculateOpponentQuantity(roundResults);
-    verify(statisticsService).calculateMyRemainingCash(roundResults);
+    verify(statisticsService).calculateMyRemainingCash(roundResults, INITIAL_CASH);
     verify(statisticsService).calculateMyQuantity(roundResults);
     verifyNoMoreInteractions(statisticsService);
   }
@@ -79,19 +79,19 @@ class AggressiveBiddingStrategyUnitTest extends UnitTest {
     // given
     List<RoundResult> roundResults = givenRoundResults();
     int opponentRemainingCash = 1;
-    when(statisticsService.calculateOpponentRemainingCash(roundResults)).thenReturn(opponentRemainingCash);
+    when(statisticsService.calculateOpponentRemainingCash(roundResults, INITIAL_CASH)).thenReturn(opponentRemainingCash);
     when(statisticsService.calculateOpponentQuantity(roundResults)).thenReturn(0);
-    when(statisticsService.calculateMyRemainingCash(roundResults)).thenReturn(INITIAL_CASH);
+    when(statisticsService.calculateMyRemainingCash(roundResults, INITIAL_CASH)).thenReturn(INITIAL_CASH);
     when(statisticsService.calculateOpponentAverageBid(roundResults)).thenReturn(INITIAL_CASH / INITIAL_QUANTITY);
 
     // when
-    int bid = aggressiveBiddingStrategy.placeBid(roundResults);
+    int bid = aggressiveBiddingStrategy.placeBid(roundResults, INITIAL_QUANTITY, INITIAL_CASH);
 
     // then
     assertThat(bid).isEqualTo(opponentRemainingCash + 1);
-    verify(statisticsService).calculateOpponentRemainingCash(roundResults);
+    verify(statisticsService).calculateOpponentRemainingCash(roundResults, INITIAL_CASH);
     verify(statisticsService).calculateOpponentQuantity(roundResults);
-    verify(statisticsService).calculateMyRemainingCash(roundResults);
+    verify(statisticsService).calculateMyRemainingCash(roundResults, INITIAL_CASH);
     verify(statisticsService).calculateMyQuantity(roundResults);
     verify(statisticsService).calculateOpponentAverageBid(roundResults);
     verifyNoMoreInteractions(statisticsService);
@@ -103,19 +103,19 @@ class AggressiveBiddingStrategyUnitTest extends UnitTest {
     // given
     List<RoundResult> roundResults = givenRoundResults();
     double bidMultiplier = 1.34;
-    when(statisticsService.calculateOpponentRemainingCash(roundResults)).thenReturn(INITIAL_CASH);
+    when(statisticsService.calculateOpponentRemainingCash(roundResults, INITIAL_CASH)).thenReturn(INITIAL_CASH);
     when(statisticsService.calculateOpponentQuantity(roundResults)).thenReturn(1);
-    when(statisticsService.calculateMyRemainingCash(roundResults)).thenReturn(INITIAL_CASH);
+    when(statisticsService.calculateMyRemainingCash(roundResults, INITIAL_CASH)).thenReturn(INITIAL_CASH);
     when(statisticsService.calculateOpponentAverageBid(roundResults)).thenReturn(INITIAL_CASH / INITIAL_QUANTITY);
 
     // when
-    int bid = aggressiveBiddingStrategy.placeBid(roundResults);
+    int bid = aggressiveBiddingStrategy.placeBid(roundResults, INITIAL_QUANTITY, INITIAL_CASH);
 
     // then
     assertThat(bid).isEqualTo((int) (bidMultiplier * INITIAL_CASH / INITIAL_QUANTITY));
-    verify(statisticsService).calculateOpponentRemainingCash(roundResults);
+    verify(statisticsService).calculateOpponentRemainingCash(roundResults, INITIAL_CASH);
     verify(statisticsService).calculateOpponentQuantity(roundResults);
-    verify(statisticsService).calculateMyRemainingCash(roundResults);
+    verify(statisticsService).calculateMyRemainingCash(roundResults, INITIAL_CASH);
     verify(statisticsService).calculateMyQuantity(roundResults);
     verify(statisticsService).calculateOpponentAverageBid(roundResults);
     verifyNoMoreInteractions(statisticsService);

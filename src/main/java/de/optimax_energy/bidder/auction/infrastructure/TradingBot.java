@@ -53,9 +53,9 @@ public class TradingBot implements Bidder {
   @Override
   public int placeBid() {
     List<RoundResult> roundResults = auctionResultStorageOperations.getRoundResultsForBidder(uuid);
-    BiddingStrategy selectedStrategy = strategyFactory.buildStrategy(quantity, roundResults, initialQuantity)
+    BiddingStrategy selectedStrategy = strategyFactory.buildStrategy(quantity, roundResults, initialQuantity, initialCash)
       .orElseThrow(() -> new StrategyNotFoundException("Could not select strategy"));
-    int bid = selectedStrategy.placeBid(roundResults);
+    int bid = selectedStrategy.placeBid(roundResults, initialQuantity, initialCash);
 
     return Math.min(bid, remainingCash);
   }
@@ -67,7 +67,9 @@ public class TradingBot implements Bidder {
   }
 
   private RoundResult calculateRoundResult(int myBid, int opponentBid) {
-    int opponentRemainingCash = statisticsService.calculateOpponentRemainingCash(auctionResultStorageOperations.getRoundResultsForBidder(uuid));
+    int opponentRemainingCashInLastRound = statisticsService.calculateOpponentRemainingCash(
+      auctionResultStorageOperations.getRoundResultsForBidder(uuid), initialCash);
+    int opponentRemainingCash = opponentRemainingCashInLastRound - opponentBid;
     remainingCash -= myBid;
 
     if (myBid > opponentBid) {
@@ -101,6 +103,14 @@ public class TradingBot implements Bidder {
         .withOpponentWonQuantity(AMOUNT_OF_PRODUCTS_IN_ONE_ROUND / 2)
         .build();
     }
+  }
+
+  public int getInitialQuantity() {
+    return initialQuantity;
+  }
+
+  public int getInitialCash() {
+    return initialCash;
   }
 
   public int getQuantity() {

@@ -5,9 +5,10 @@ import de.optimax_energy.bidder.IntegrationTest;
 import de.optimax_energy.bidder.auction.api.AuctionResultStorageOperations;
 import de.optimax_energy.bidder.auction.api.Bidder;
 import de.optimax_energy.bidder.auction.infrastructure.TradingBot;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,17 +43,22 @@ class AuctionIntegrationTest extends IntegrationTest {
   @Autowired
   private AuctionResultStorageOperations auctionResultStorageOperations;
 
-  @BeforeEach
-  void setUp() {
+  private int initialQuantity;
+
+  void setUp(int initialQuantity, int initialCash) {
+    this.initialQuantity = initialQuantity;
     tradingBot.init(initialQuantity, initialCash);
     dummyBidder.init(initialQuantity, initialCash);
     randomBidder.init(initialQuantity, initialCash);
     auctionResultStorageOperations.getRoundResultsForBidder(tradingBot.getUuid()).clear();
   }
 
-  @Test
-  @DisplayName("Should win dummy bidder")
-  void shouldWinDummyBidder() {
+  @ParameterizedTest(name = "Should win dummy bidder. initialQuantity={0}, initialCash={1}")
+  @CsvSource({"50, 100", "100, 10000", "100, 1000", "10, 1000"})
+  void shouldWinDummyBidder(int initialQuantity, int initialCash) {
+    // given
+    setUp(initialQuantity, initialCash);
+
     // when
     Bidder bidder = startAuction(tradingBot, dummyBidder);
 
@@ -60,15 +66,15 @@ class AuctionIntegrationTest extends IntegrationTest {
     assertThat(bidder).isEqualTo(tradingBot);
   }
 
-  @Test
-  @DisplayName("Should win aggressive random bidder bot more than in half of auctions")
-  void shouldWinRandomBidder() {
+  @ParameterizedTest(name = "Should win aggressive random bidder bot more than in half of auctions. initialQuantity={0}, initialCash={1}")
+  @CsvSource({"50, 100", "100, 10000", "100, 1000", "10, 1000"})
+  void shouldWinRandomBidder(int initialQuantity, int initialCash) {
     // given
     // the number of auctions should be large enough to exclude randomness in results
     int numberOfTests = 100;
 
     // when
-    int numberOfTradingBotWins = runAuctionMultipleTimesAndReturnNumberOfWinsOfFirstBidder(tradingBot, randomBidder, numberOfTests);
+    int numberOfTradingBotWins = runAuctionMultipleTimesAndReturnNumberOfWinsOfFirstBidder(tradingBot, randomBidder, numberOfTests, initialQuantity, initialCash);
 
     // then
     assertThat(numberOfTradingBotWins * 100 / numberOfTests).isGreaterThan(50);
@@ -77,6 +83,9 @@ class AuctionIntegrationTest extends IntegrationTest {
   @Test
   @DisplayName("Should win aggressive bidder")
   void shouldWinAggressiveBidder() {
+    // given
+    setUp(100, 10000);
+
     // when
     Bidder bidder = startAuction(tradingBot, aggressiveBidder);
 
@@ -103,10 +112,10 @@ class AuctionIntegrationTest extends IntegrationTest {
     return chooseWinner(tradingBot, dummyBot);
   }
 
-  private int runAuctionMultipleTimesAndReturnNumberOfWinsOfFirstBidder(TradingBot tradingBot, TradingBot randomBidder, int numberOfTests) {
+  private int runAuctionMultipleTimesAndReturnNumberOfWinsOfFirstBidder(TradingBot tradingBot, TradingBot randomBidder, int numberOfTests, int initialQuantity, int initialCash) {
     int numberOfTradingBotWins = 0;
     for (int i = 0; i < numberOfTests; i++) {
-      setUp();
+      setUp(initialQuantity, initialCash);
       Bidder bidder = startAuction(tradingBot, randomBidder);
       if (bidder != null && bidder.equals(tradingBot)) {
         numberOfTradingBotWins++;

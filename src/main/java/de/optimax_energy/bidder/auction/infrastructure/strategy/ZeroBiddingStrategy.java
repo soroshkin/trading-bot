@@ -9,7 +9,7 @@ import java.util.List;
 public class ZeroBiddingStrategy implements BiddingStrategy {
 
   @Override
-  public int placeBid(List<RoundResult> roundResults) {
+  public int placeBid(List<RoundResult> roundResults, int initialQuantity, int initialCash) {
     return 0;
   }
 

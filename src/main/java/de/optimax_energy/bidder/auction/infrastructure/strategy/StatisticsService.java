@@ -6,13 +6,7 @@ import java.util.List;
 
 public class StatisticsService {
 
-  private final int initialCash;
-
-  public StatisticsService(Integer initialCash) {
-    this.initialCash = initialCash;
-  }
-
-  public int calculateOpponentQuantity(List<RoundResult> roundResults) {
+   public int calculateOpponentQuantity(List<RoundResult> roundResults) {
     return roundResults.stream()
       .map(RoundResult::getOpponentWonQuantity)
       .reduce(0, Integer::sum);
@@ -24,17 +18,17 @@ public class StatisticsService {
       .reduce(0, Integer::sum);
   }
 
-  public int calculateMyRemainingCash(List<RoundResult> roundResults) {
+  public int calculateMyRemainingCash(List<RoundResult> roundResults, int initialCash) {
     return initialCash - calculateMySpentCash(roundResults);
   }
 
-  public int calculateOpponentRemainingCash(List<RoundResult> roundResults) {
+  public int calculateOpponentRemainingCash(List<RoundResult> roundResults, int initialCash) {
     return roundResults.isEmpty() ? initialCash
       : roundResults.get(roundResults.size() - 1).getOpponentRemainingCash();
   }
 
   public int calculateOpponentAverageBid(List<RoundResult> roundResults) {
-    int numberOfLastBids = 5;
+    int numberOfLastBids = 3;
     List<RoundResult> roundResultsForAverageCalculation = (roundResults.size() >= numberOfLastBids)
       ? roundResults.subList(roundResults.size() - numberOfLastBids, roundResults.size())
       : roundResults;

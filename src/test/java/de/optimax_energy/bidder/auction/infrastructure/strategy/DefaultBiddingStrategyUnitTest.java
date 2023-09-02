@@ -2,8 +2,6 @@ package de.optimax_energy.bidder.auction.infrastructure.strategy;
 
 import de.optimax_energy.bidder.UnitTest;
 import de.optimax_energy.bidder.auction.api.dto.RoundResult;
-import de.optimax_energy.bidder.auction.infrastructure.strategy.DefaultBiddingStrategy;
-import de.optimax_energy.bidder.auction.infrastructure.strategy.StatisticsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,7 +26,7 @@ class DefaultBiddingStrategyUnitTest extends UnitTest {
 
   @BeforeEach
   void setUp() {
-    defaultBiddingStrategy = new DefaultBiddingStrategy(INITIAL_QUANTITY, INITIAL_CASH, statisticsService);
+    defaultBiddingStrategy = new DefaultBiddingStrategy(statisticsService);
   }
 
   @Test
@@ -36,14 +34,14 @@ class DefaultBiddingStrategyUnitTest extends UnitTest {
   void shouldReturnBid() {
     // given
     List<RoundResult> roundResults = givenRoundResults();
-    when(statisticsService.calculateOpponentRemainingCash(roundResults)).thenReturn(INITIAL_CASH);
+    when(statisticsService.calculateOpponentRemainingCash(roundResults, INITIAL_CASH)).thenReturn(INITIAL_CASH);
 
     // when
-    int bid = defaultBiddingStrategy.placeBid(roundResults);
+    int bid = defaultBiddingStrategy.placeBid(roundResults, INITIAL_QUANTITY, INITIAL_CASH);
 
     // then
     assertThat(bid).isEqualTo(166);
-    verify(statisticsService).calculateOpponentRemainingCash(roundResults);
+    verify(statisticsService).calculateOpponentRemainingCash(roundResults, INITIAL_CASH);
   }
 
   @Test
@@ -52,14 +50,14 @@ class DefaultBiddingStrategyUnitTest extends UnitTest {
     // given
     List<RoundResult> roundResults = givenRoundResults();
     int givenOpponentRemainingCash = 1;
-    when(statisticsService.calculateOpponentRemainingCash(roundResults)).thenReturn(givenOpponentRemainingCash);
+    when(statisticsService.calculateOpponentRemainingCash(roundResults, INITIAL_CASH)).thenReturn(givenOpponentRemainingCash);
 
     // when
-    int bid = defaultBiddingStrategy.placeBid(roundResults);
+    int bid = defaultBiddingStrategy.placeBid(roundResults, INITIAL_QUANTITY, INITIAL_CASH);
 
     // then
     assertThat(bid).isEqualTo(givenOpponentRemainingCash + 1);
-    verify(statisticsService).calculateOpponentRemainingCash(roundResults);
+    verify(statisticsService).calculateOpponentRemainingCash(roundResults, INITIAL_CASH);
   }
 
   private List<RoundResult> givenRoundResults() {

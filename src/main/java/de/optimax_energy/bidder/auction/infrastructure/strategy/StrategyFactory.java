@@ -25,7 +25,7 @@ public class StrategyFactory {
     this.statisticsService = statisticsService;
   }
 
-  public Optional<BiddingStrategy> buildStrategy(int myWonQuantity, List<RoundResult> roundResults, int initialQuantity) {
+  public Optional<BiddingStrategy> buildStrategy(int myWonQuantity, List<RoundResult> roundResults, int initialQuantity, int initialCash) {
     int opponentQuantity = statisticsService.calculateOpponentQuantity(roundResults);
     int remainingQuantity = initialQuantity - myWonQuantity - opponentQuantity;
 
@@ -45,7 +45,7 @@ public class StrategyFactory {
       return Optional.ofNullable(auctionStrategies.get(StrategyName.MINIMUM_BID));
     }
 
-    if (shouldBidMoreAggressively(initialQuantity, myWonQuantity, roundResults)) {
+    if (shouldBidMoreAggressively(initialQuantity, initialCash, myWonQuantity, roundResults)) {
       logger.info("Looks like I am loosing, choosing more aggressive bid strategy");
       return Optional.ofNullable(auctionStrategies.get(StrategyName.AGGRESSIVE));
     }
@@ -68,13 +68,13 @@ public class StrategyFactory {
     return myPotentialQuantity < initialQuantity / 2;
   }
 
-  private boolean shouldBidMoreAggressively(int initialQuantity, int myCurrentQuantity, List<RoundResult> roundResults) {
+  private boolean shouldBidMoreAggressively(int initialQuantity, int initialCash, int myCurrentQuantity, List<RoundResult> roundResults) {
     int opponentQuantity = statisticsService.calculateOpponentQuantity(roundResults);
     int remainingQuantity = initialQuantity - myCurrentQuantity - opponentQuantity;
     int requiredQuantityNotToLoose = initialQuantity / 2;
     int requiredQuantityLeftToWin = requiredQuantityNotToLoose + 1 - myCurrentQuantity;
-    int opponentRemainingCash = statisticsService.calculateOpponentRemainingCash(roundResults);
-    int myRemainingCash = statisticsService.calculateMyRemainingCash(roundResults);
+    int opponentRemainingCash = statisticsService.calculateOpponentRemainingCash(roundResults, initialCash);
+    int myRemainingCash = statisticsService.calculateMyRemainingCash(roundResults,initialCash);
 
     return opponentQuantity > myCurrentQuantity && opponentRemainingCash > myRemainingCash
       || requiredQuantityLeftToWin * 100.0 / remainingQuantity >= AGGRESSIVE_STRATEGY_THRESHOLD;

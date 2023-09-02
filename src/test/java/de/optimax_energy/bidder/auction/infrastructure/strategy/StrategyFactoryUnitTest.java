@@ -51,7 +51,7 @@ class StrategyFactoryUnitTest extends UnitTest {
     when(statisticsService.calculateOpponentQuantity(roundResults)).thenReturn(opponentQuantity);
 
     // when
-    Optional<BiddingStrategy> biddingStrategy = strategyFactory.buildStrategy(myWonQuantity, roundResults, initialQuantity);
+    Optional<BiddingStrategy> biddingStrategy = strategyFactory.buildStrategy(myWonQuantity, roundResults, initialQuantity, 0);
 
     // then
     assertThat(biddingStrategy).hasValue(givenStrategy);
@@ -69,7 +69,7 @@ class StrategyFactoryUnitTest extends UnitTest {
     List<RoundResult> roundResults = Collections.emptyList();
 
     // when
-    Optional<BiddingStrategy> biddingStrategy = strategyFactory.buildStrategy(0, roundResults, 10);
+    Optional<BiddingStrategy> biddingStrategy = strategyFactory.buildStrategy(0, roundResults, 10, 0);
 
     // then
     assertThat(biddingStrategy).hasValue(givenStrategy);
@@ -87,7 +87,7 @@ class StrategyFactoryUnitTest extends UnitTest {
     List<RoundResult> roundResults = List.of(RoundResult.builder().withOpponentRemainingCash(0).build());
 
     // when
-    Optional<BiddingStrategy> biddingStrategy = strategyFactory.buildStrategy(0, roundResults, 0);
+    Optional<BiddingStrategy> biddingStrategy = strategyFactory.buildStrategy(0, roundResults, 0,0);
 
     // then
     assertThat(biddingStrategy).hasValue(givenStrategy);
@@ -105,14 +105,14 @@ class StrategyFactoryUnitTest extends UnitTest {
     List<RoundResult> roundResults = List.of(RoundResult.builder().withOpponentRemainingCash(1).build());
 
     // when
-    Optional<BiddingStrategy> biddingStrategy = strategyFactory.buildStrategy(0, roundResults, 0);
+    Optional<BiddingStrategy> biddingStrategy = strategyFactory.buildStrategy(0, roundResults, 0,INITIAL_CASH);
 
     // then
     assertThat(biddingStrategy).hasValue(givenStrategy);
     verify(auctionStrategies).get(AGGRESSIVE);
     verify(statisticsService, times(2)).calculateOpponentQuantity(roundResults);
-    verify(statisticsService).calculateOpponentRemainingCash(roundResults);
-    verify(statisticsService).calculateMyRemainingCash(roundResults);
+    verify(statisticsService).calculateOpponentRemainingCash(roundResults,INITIAL_CASH);
+    verify(statisticsService).calculateMyRemainingCash(roundResults,INITIAL_CASH);
     verifyNoMoreInteractions(statisticsService, auctionStrategies);
   }
 
@@ -131,17 +131,17 @@ class StrategyFactoryUnitTest extends UnitTest {
         .withOpponentRemainingCash(INITIAL_CASH)
         .withOpponentWonQuantity(opponentQuantity)
         .build());
-    when(statisticsService.calculateOpponentRemainingCash(roundResults)).thenReturn(INITIAL_CASH);
+    when(statisticsService.calculateOpponentRemainingCash(roundResults,INITIAL_CASH)).thenReturn(INITIAL_CASH);
 
     // when
-    Optional<BiddingStrategy> biddingStrategy = strategyFactory.buildStrategy(myWonQuantity, roundResults, initialQuantity);
+    Optional<BiddingStrategy> biddingStrategy = strategyFactory.buildStrategy(myWonQuantity, roundResults, initialQuantity, INITIAL_CASH);
 
     // then
     assertThat(biddingStrategy).hasValue(givenStrategy);
     verify(auctionStrategies).get(AGGRESSIVE);
     verify(statisticsService, times(2)).calculateOpponentQuantity(roundResults);
-    verify(statisticsService).calculateOpponentRemainingCash(roundResults);
-    verify(statisticsService).calculateMyRemainingCash(roundResults);
+    verify(statisticsService).calculateOpponentRemainingCash(roundResults,INITIAL_CASH);
+    verify(statisticsService).calculateMyRemainingCash(roundResults,INITIAL_CASH);
     verifyNoMoreInteractions(statisticsService, auctionStrategies);
   }
 
@@ -162,18 +162,18 @@ class StrategyFactoryUnitTest extends UnitTest {
       .withOpponentWonQuantity(opponentWonQuantity)
       .build());
     when(statisticsService.calculateOpponentQuantity(roundResults)).thenReturn(opponentWonQuantity);
-    when(statisticsService.calculateOpponentRemainingCash(roundResults)).thenReturn(opponentWonQuantity);
-    when(statisticsService.calculateMyRemainingCash(roundResults)).thenReturn(myRemainingCash);
+    when(statisticsService.calculateOpponentRemainingCash(roundResults,INITIAL_CASH)).thenReturn(opponentWonQuantity);
+    when(statisticsService.calculateMyRemainingCash(roundResults,INITIAL_CASH)).thenReturn(myRemainingCash);
 
     // when
-    Optional<BiddingStrategy> biddingStrategy = strategyFactory.buildStrategy(myWonQuantity, roundResults, initialQuantity);
+    Optional<BiddingStrategy> biddingStrategy = strategyFactory.buildStrategy(myWonQuantity, roundResults, initialQuantity, INITIAL_CASH);
 
     // then
     assertThat(biddingStrategy).hasValue(givenStrategy);
     verify(auctionStrategies).get(DEFAULT);
     verify(statisticsService, times(2)).calculateOpponentQuantity(roundResults);
-    verify(statisticsService).calculateOpponentRemainingCash(roundResults);
-    verify(statisticsService).calculateMyRemainingCash(roundResults);
+    verify(statisticsService).calculateOpponentRemainingCash(roundResults,INITIAL_CASH);
+    verify(statisticsService).calculateMyRemainingCash(roundResults,INITIAL_CASH);
     verifyNoMoreInteractions(statisticsService, auctionStrategies);
   }
 

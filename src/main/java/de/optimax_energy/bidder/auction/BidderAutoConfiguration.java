@@ -12,7 +12,6 @@ import de.optimax_energy.bidder.auction.infrastructure.strategy.MinimumBidStrate
 import de.optimax_energy.bidder.auction.infrastructure.strategy.StatisticsService;
 import de.optimax_energy.bidder.auction.infrastructure.strategy.StrategyFactory;
 import de.optimax_energy.bidder.auction.infrastructure.strategy.ZeroBiddingStrategy;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 
@@ -20,16 +19,6 @@ import java.util.Map;
 
 @AutoConfiguration
 public class BidderAutoConfiguration {
-
-  private final Integer initialQuantity;
-
-  private final Integer initialCash;
-
-  public BidderAutoConfiguration(@Value("${bidder.quantity}") Integer initialQuantity,
-                                 @Value("${bidder.cash}") Integer initialCash) {
-    this.initialQuantity = initialQuantity;
-    this.initialCash = initialCash;
-  }
 
   @Bean
   public Map<StrategyName, BiddingStrategy> auctionStrategies(BiddingStrategy zeroBiddingStrategy,
@@ -44,9 +33,7 @@ public class BidderAutoConfiguration {
 
   @Bean
   public Bidder tradingBot(StrategyFactory strategyFactory, AuctionResultStorageOperations auctionResultStorageOperations, StatisticsService statisticsService) {
-    TradingBot tradingBot = new TradingBot(strategyFactory, auctionResultStorageOperations, statisticsService);
-    tradingBot.init(initialQuantity, initialCash);
-    return tradingBot;
+    return new TradingBot(strategyFactory, auctionResultStorageOperations, statisticsService);
   }
 
   @Bean
@@ -61,7 +48,7 @@ public class BidderAutoConfiguration {
 
   @Bean
   public BiddingStrategy aggressiveBiddingStrategy(StatisticsService statisticsService) {
-    return new AggressiveBiddingStrategy(initialQuantity, statisticsService);
+    return new AggressiveBiddingStrategy(statisticsService);
   }
 
   @Bean
@@ -71,7 +58,7 @@ public class BidderAutoConfiguration {
 
   @Bean
   public BiddingStrategy defaultBiddingStrategy(StatisticsService statisticsService) {
-    return new DefaultBiddingStrategy(initialQuantity, initialCash, statisticsService);
+    return new DefaultBiddingStrategy(statisticsService);
   }
 
   @Bean
@@ -81,6 +68,6 @@ public class BidderAutoConfiguration {
 
   @Bean
   public StatisticsService statisticsService() {
-    return new StatisticsService(initialCash);
+    return new StatisticsService();
   }
 }

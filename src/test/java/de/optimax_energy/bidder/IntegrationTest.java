@@ -8,10 +8,4 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest(classes = TestApplication.class)
 @ActiveProfiles("test")
 public class IntegrationTest {
-
-  @Value("${bidder.quantity}")
-  protected int initialQuantity;
-
-  @Value("${bidder.cash}")
-  protected int initialCash;
 }

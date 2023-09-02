@@ -8,21 +8,15 @@ import java.util.List;
 
 public class DefaultBiddingStrategy implements BiddingStrategy {
 
-  private final int initialQuantity;
-
-  private final int initialCash;
-
   private final StatisticsService statisticsService;
 
-  public DefaultBiddingStrategy(Integer initialQuantity, Integer initialCash, StatisticsService statisticsService) {
-    this.initialQuantity = initialQuantity;
-    this.initialCash = initialCash;
+  public DefaultBiddingStrategy(StatisticsService statisticsService) {
     this.statisticsService = statisticsService;
   }
 
   @Override
-  public int placeBid(List<RoundResult> roundResults) {
-    return calculateAveragePriceOfBidToWin(roundResults);
+  public int placeBid(List<RoundResult> roundResults, int initialQuantity, int initialCash) {
+    return calculateAveragePriceOfBidToWin(roundResults, initialQuantity, initialCash);
   }
 
   @Override
@@ -38,11 +32,11 @@ public class DefaultBiddingStrategy implements BiddingStrategy {
    *
    * @return bid
    */
-  private int calculateAveragePriceOfBidToWin(List<RoundResult> roundResults) {
+  private int calculateAveragePriceOfBidToWin(List<RoundResult> roundResults, int initialQuantity, int initialCash) {
     int numberOfBidsToWin = (initialQuantity / AMOUNT_OF_PRODUCTS_IN_ONE_ROUND / 2) + 1;
     int bid = initialCash / numberOfBidsToWin / 2;
 
-    int opponentRemainingCash = statisticsService.calculateOpponentRemainingCash(roundResults);
+    int opponentRemainingCash = statisticsService.calculateOpponentRemainingCash(roundResults, initialCash);
     if (opponentRemainingCash < bid) {
       return opponentRemainingCash + 1;
     }
