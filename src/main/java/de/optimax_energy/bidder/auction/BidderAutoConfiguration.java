@@ -8,6 +8,7 @@ import de.optimax_energy.bidder.auction.infrastructure.TradingBot;
 import de.optimax_energy.bidder.auction.infrastructure.storage.AuctionResultInMemoryStorageService;
 import de.optimax_energy.bidder.auction.infrastructure.strategy.AggressiveBiddingStrategy;
 import de.optimax_energy.bidder.auction.infrastructure.strategy.DefaultBiddingStrategy;
+import de.optimax_energy.bidder.auction.infrastructure.strategy.MaximumBidStrategy;
 import de.optimax_energy.bidder.auction.infrastructure.strategy.MinimumBidStrategy;
 import de.optimax_energy.bidder.auction.infrastructure.strategy.StatisticsService;
 import de.optimax_energy.bidder.auction.infrastructure.strategy.StrategyFactory;
@@ -24,10 +25,12 @@ public class BidderAutoConfiguration {
   public Map<StrategyName, BiddingStrategy> auctionStrategies(BiddingStrategy zeroBiddingStrategy,
                                                               BiddingStrategy aggressiveBiddingStrategy,
                                                               BiddingStrategy minimumBidStrategy,
+                                                              BiddingStrategy maximumBidStrategy,
                                                               BiddingStrategy defaultBiddingStrategy) {
     return Map.of(zeroBiddingStrategy.getStrategyName(), zeroBiddingStrategy,
       aggressiveBiddingStrategy.getStrategyName(), aggressiveBiddingStrategy,
       minimumBidStrategy.getStrategyName(), minimumBidStrategy,
+      maximumBidStrategy.getStrategyName(), maximumBidStrategy,
       defaultBiddingStrategy.getStrategyName(), defaultBiddingStrategy);
   }
 
@@ -54,6 +57,11 @@ public class BidderAutoConfiguration {
   @Bean
   public BiddingStrategy minimumBidStrategy() {
     return new MinimumBidStrategy();
+  }
+
+  @Bean
+  public BiddingStrategy maximumBidStrategy() {
+    return new MaximumBidStrategy();
   }
 
   @Bean

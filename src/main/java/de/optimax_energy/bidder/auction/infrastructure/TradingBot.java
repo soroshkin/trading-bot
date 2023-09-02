@@ -19,14 +19,6 @@ public class TradingBot implements Bidder {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  private int initialQuantity;
-
-  private int initialCash;
-
-  private int quantity;
-
-  private int remainingCash;
-
   private final StrategyFactory strategyFactory;
 
   private final AuctionResultStorageOperations auctionResultStorageOperations;
@@ -34,6 +26,14 @@ public class TradingBot implements Bidder {
   private final StatisticsService statisticsService;
 
   private final String uuid;
+
+  private int initialQuantity;
+
+  private int initialCash;
+
+  private int quantity;
+
+  private int remainingCash;
 
   public TradingBot(StrategyFactory strategyFactory, AuctionResultStorageOperations auctionResultStorageOperations, StatisticsService statisticsService) {
     this.strategyFactory = strategyFactory;

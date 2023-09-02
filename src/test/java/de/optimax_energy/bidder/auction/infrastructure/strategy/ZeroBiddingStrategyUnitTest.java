@@ -2,6 +2,7 @@ package de.optimax_energy.bidder.auction.infrastructure.strategy;
 
 import de.optimax_energy.bidder.UnitTest;
 import de.optimax_energy.bidder.auction.api.dto.RoundResult;
+import de.optimax_energy.bidder.auction.api.dto.StrategyName;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -25,5 +26,15 @@ class ZeroBiddingStrategyUnitTest extends UnitTest {
 
     // then
     assertThat(bid).isZero();
+  }
+
+  @Test
+  @DisplayName("Should return strategy name")
+  void shouldReturnStrategyName() {
+    // when
+    StrategyName strategyName = zeroBiddingStrategy.getStrategyName();
+
+    // then
+    assertThat(strategyName).isEqualTo(StrategyName.ZERO_BID);
   }
 }

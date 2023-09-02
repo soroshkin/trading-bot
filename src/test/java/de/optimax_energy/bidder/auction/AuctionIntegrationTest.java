@@ -20,9 +20,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ContextConfiguration(classes = {BidderTestConfiguration.class, BidderAutoConfiguration.class})
 class AuctionIntegrationTest extends IntegrationTest {
 
-  private final Logger logger = LoggerFactory.getLogger(getClass());
-
   private static final int AMOUNT_OF_PRODUCTS_IN_ONE_ROUND = 2;
+
+  private final Logger logger = LoggerFactory.getLogger(getClass());
 
   @Autowired
   @Qualifier("tradingBot")
@@ -54,7 +54,7 @@ class AuctionIntegrationTest extends IntegrationTest {
   }
 
   @ParameterizedTest(name = "Should win dummy bidder. initialQuantity={0}, initialCash={1}")
-  @CsvSource({"50, 100", "100, 10000", "100, 1000", "10, 1000"})
+  @CsvSource({"50, 100", "100, 10000", "100, 1000", "10, 1000", "2, 200"})
   void shouldWinDummyBidder(int initialQuantity, int initialCash) {
     // given
     setUp(initialQuantity, initialCash);
@@ -67,7 +67,7 @@ class AuctionIntegrationTest extends IntegrationTest {
   }
 
   @ParameterizedTest(name = "Should win aggressive random bidder bot more than in half of auctions. initialQuantity={0}, initialCash={1}")
-  @CsvSource({"50, 100", "100, 10000", "100, 1000", "10, 1000"})
+  @CsvSource({"50, 100", "100, 10000", "100, 1000", "6, 1000", "2, 200"})
   void shouldWinRandomBidder(int initialQuantity, int initialCash) {
     // given
     // the number of auctions should be large enough to exclude randomness in results
@@ -84,7 +84,9 @@ class AuctionIntegrationTest extends IntegrationTest {
   @DisplayName("Should win aggressive bidder")
   void shouldWinAggressiveBidder() {
     // given
-    setUp(100, 10000);
+    int initialQuantity = 100;
+    int initialCash = 10000;
+    setUp(initialQuantity, initialCash);
 
     // when
     Bidder bidder = startAuction(tradingBot, aggressiveBidder);

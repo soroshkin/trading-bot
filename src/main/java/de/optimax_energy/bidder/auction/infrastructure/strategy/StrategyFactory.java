@@ -10,9 +10,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static de.optimax_energy.bidder.auction.api.BiddingStrategy.AMOUNT_OF_PRODUCTS_IN_ONE_ROUND;
+
 public class StrategyFactory {
 
   private static final int AGGRESSIVE_STRATEGY_THRESHOLD = 20;
+
+  private static final int MINIMUM_INITIAL_QUANTITY_TO_APPLY_MINIMUM_BID_STRATEGY = 10;
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -29,15 +33,20 @@ public class StrategyFactory {
     int opponentQuantity = statisticsService.calculateOpponentQuantity(roundResults);
     int remainingQuantity = initialQuantity - myWonQuantity - opponentQuantity;
 
+    if (initialQuantity == AMOUNT_OF_PRODUCTS_IN_ONE_ROUND || isLastRound(remainingQuantity)) {
+      logger.info("Selected maximumBidStrategy");
+      return Optional.ofNullable(auctionStrategies.get(StrategyName.MAXIMUM_BID));
+    }
+
+    if (roundResults.isEmpty() && initialQuantity > MINIMUM_INITIAL_QUANTITY_TO_APPLY_MINIMUM_BID_STRATEGY) {
+      logger.info("First round bid strategy has been chosen");
+      return Optional.ofNullable(auctionStrategies.get(StrategyName.MINIMUM_BID));
+    }
+
     if (isEnoughQuantityToWin(initialQuantity, myWonQuantity)
       || isAlreadyLost(initialQuantity, myWonQuantity + remainingQuantity)) {
       logger.info("Zero bid strategy has been chosen");
       return Optional.ofNullable(auctionStrategies.get(StrategyName.ZERO_BID));
-    }
-
-    if (roundResults.isEmpty()) {
-      logger.info("First round bid strategy has been chosen");
-      return Optional.ofNullable(auctionStrategies.get(StrategyName.MINIMUM_BID));
     }
 
     if (!isEnoughQuantityToWin(initialQuantity, myWonQuantity) && opponentHasNoMoney(roundResults)) {
@@ -56,8 +65,12 @@ public class StrategyFactory {
     return Optional.ofNullable(strategy);
   }
 
+  private boolean isLastRound(int remainingQuantity) {
+    return remainingQuantity == AMOUNT_OF_PRODUCTS_IN_ONE_ROUND;
+  }
+
   private boolean opponentHasNoMoney(List<RoundResult> roundResults) {
-    return roundResults.get(roundResults.size() - 1).getOpponentRemainingCash() == 0;
+    return !roundResults.isEmpty() && roundResults.get(roundResults.size() - 1).getOpponentRemainingCash() == 0;
   }
 
   private boolean isEnoughQuantityToWin(int initialQuantity, int myWonQuantity) {
@@ -74,7 +87,7 @@ public class StrategyFactory {
     int requiredQuantityNotToLoose = initialQuantity / 2;
     int requiredQuantityLeftToWin = requiredQuantityNotToLoose + 1 - myCurrentQuantity;
     int opponentRemainingCash = statisticsService.calculateOpponentRemainingCash(roundResults, initialCash);
-    int myRemainingCash = statisticsService.calculateMyRemainingCash(roundResults,initialCash);
+    int myRemainingCash = statisticsService.calculateMyRemainingCash(roundResults, initialCash);
 
     return opponentQuantity > myCurrentQuantity && opponentRemainingCash > myRemainingCash
       || requiredQuantityLeftToWin * 100.0 / remainingQuantity >= AGGRESSIVE_STRATEGY_THRESHOLD;

@@ -64,8 +64,8 @@ class TradingBotUnitTest extends UnitTest {
     List<RoundResult> roundResults = givenRoundResults();
     when(auctionResultInMemoryStorageService.getRoundResultsForBidder(anyString())).thenReturn(roundResults);
     BiddingStrategy givenStrategy = mock(BiddingStrategy.class);
-    when(givenStrategy.placeBid(roundResults)).thenReturn(0);
-    when(strategyFactory.buildStrategy(anyInt(), refEq(roundResults), anyInt())).thenReturn(Optional.of(givenStrategy));
+    when(givenStrategy.placeBid(roundResults, INITIAL_QUANTITY, INITIAL_CASH)).thenReturn(0);
+    when(strategyFactory.buildStrategy(anyInt(), refEq(roundResults), anyInt(), anyInt())).thenReturn(Optional.of(givenStrategy));
 
     // when
     int bid = tradingBot.placeBid();
@@ -73,8 +73,8 @@ class TradingBotUnitTest extends UnitTest {
     // then
     assertThat(bid).isZero();
     verify(auctionResultInMemoryStorageService).getRoundResultsForBidder(anyString());
-    verify(strategyFactory).buildStrategy(anyInt(), refEq(roundResults), anyInt());
-    verify(givenStrategy).placeBid(roundResults);
+    verify(strategyFactory).buildStrategy(anyInt(), refEq(roundResults), anyInt(), anyInt());
+    verify(givenStrategy).placeBid(roundResults, INITIAL_QUANTITY, INITIAL_CASH);
     verifyNoMoreInteractions(statisticsService, auctionResultInMemoryStorageService, statisticsService);
   }
 
@@ -85,8 +85,8 @@ class TradingBotUnitTest extends UnitTest {
     List<RoundResult> roundResults = givenRoundResults();
     when(auctionResultInMemoryStorageService.getRoundResultsForBidder(anyString())).thenReturn(roundResults);
     BiddingStrategy givenStrategy = mock(BiddingStrategy.class);
-    when(givenStrategy.placeBid(roundResults)).thenReturn(0);
-    when(strategyFactory.buildStrategy(anyInt(), refEq(roundResults), anyInt())).thenReturn(Optional.of(givenStrategy));
+    when(givenStrategy.placeBid(roundResults, INITIAL_QUANTITY, INITIAL_CASH)).thenReturn(0);
+    when(strategyFactory.buildStrategy(anyInt(), refEq(roundResults), anyInt(), anyInt())).thenReturn(Optional.of(givenStrategy));
 
     // when
     int bid = tradingBot.placeBid();
@@ -94,8 +94,8 @@ class TradingBotUnitTest extends UnitTest {
     // then
     assertThat(bid).isZero();
     verify(auctionResultInMemoryStorageService).getRoundResultsForBidder(anyString());
-    verify(strategyFactory).buildStrategy(anyInt(), refEq(roundResults), anyInt());
-    verify(givenStrategy).placeBid(roundResults);
+    verify(strategyFactory).buildStrategy(anyInt(), refEq(roundResults), anyInt(), anyInt());
+    verify(givenStrategy).placeBid(roundResults, INITIAL_QUANTITY, INITIAL_CASH);
     verifyNoMoreInteractions(statisticsService, auctionResultInMemoryStorageService, statisticsService);
   }
 
@@ -105,7 +105,7 @@ class TradingBotUnitTest extends UnitTest {
     // given
     List<RoundResult> roundResults = givenRoundResults();
     when(auctionResultInMemoryStorageService.getRoundResultsForBidder(anyString())).thenReturn(roundResults);
-    when(strategyFactory.buildStrategy(anyInt(), refEq(roundResults), anyInt())).thenReturn(Optional.empty());
+    when(strategyFactory.buildStrategy(anyInt(), refEq(roundResults), anyInt(), anyInt())).thenReturn(Optional.empty());
 
     // when - then
     assertThatThrownBy(() -> tradingBot.placeBid())
@@ -113,11 +113,11 @@ class TradingBotUnitTest extends UnitTest {
       .hasMessage("Could not select strategy");
 
     verify(auctionResultInMemoryStorageService).getRoundResultsForBidder(anyString());
-    verify(strategyFactory).buildStrategy(anyInt(), refEq(roundResults), anyInt());
+    verify(strategyFactory).buildStrategy(anyInt(), refEq(roundResults), anyInt(), anyInt());
     verifyNoMoreInteractions(statisticsService, auctionResultInMemoryStorageService, statisticsService);
   }
 
-  @ParameterizedTest
+  @ParameterizedTest(name = "Should save RoundResult. myBid={0}, myExpectedRemainingCash={1}, opponentBid={2}")
   @CsvSource({"1, 99, 0, 2, 100, 0",
     "0, 100, 1, 0, 99, 2",
     "1, 99, 1, 1, 99, 1"})
@@ -137,7 +137,7 @@ class TradingBotUnitTest extends UnitTest {
       .withOpponentWonQuantity(expectedOpponentWonQuantity)
       .build();
     when(auctionResultInMemoryStorageService.getRoundResultsForBidder(anyString())).thenReturn(givenRoundResults);
-    when(statisticsService.calculateOpponentRemainingCash(givenRoundResults)).thenReturn(expectedOpponentRemainingCash);
+    when(statisticsService.calculateOpponentRemainingCash(givenRoundResults, INITIAL_CASH)).thenReturn(INITIAL_CASH);
 
     // when
     tradingBot.bids(myBid, opponentBid);
@@ -148,7 +148,7 @@ class TradingBotUnitTest extends UnitTest {
     assertThat(roundResult).usingRecursiveComparison().isEqualTo(expectedRoundResult);
     assertThat(tradingBot.getRemainingCash()).isEqualTo(myExpectedRemainingCash);
     verify(auctionResultInMemoryStorageService).getRoundResultsForBidder(anyString());
-    verify(statisticsService).calculateOpponentRemainingCash(givenRoundResults);
+    verify(statisticsService).calculateOpponentRemainingCash(givenRoundResults, INITIAL_CASH);
     verifyNoMoreInteractions(statisticsService, auctionResultInMemoryStorageService, statisticsService);
   }
 

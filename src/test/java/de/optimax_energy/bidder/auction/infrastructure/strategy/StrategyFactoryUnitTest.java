@@ -21,6 +21,7 @@ import static de.optimax_energy.bidder.auction.api.dto.StrategyName.DEFAULT;
 import static de.optimax_energy.bidder.auction.api.dto.StrategyName.MINIMUM_BID;
 import static de.optimax_energy.bidder.auction.api.dto.StrategyName.ZERO_BID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -40,15 +41,15 @@ class StrategyFactoryUnitTest extends UnitTest {
   @InjectMocks
   private StrategyFactory strategyFactory;
 
-  @ParameterizedTest(name = "Should select ZeroBiddingStrategy, myWonQuantity={0}, opponentQuantity={1}, leftQuantity={2}")
-  @CsvSource({"7, 3, 2", "1, 7, 2"})
-  void shouldSelectZeroBiddingStrategy(int myWonQuantity, int opponentQuantity, int leftQuantity) {
+  @ParameterizedTest(name = "Should select ZeroBiddingStrategy, myWonQuantity={0}, opponentWonQuantity={1}, leftQuantity={2}")
+  @CsvSource({"7, 1, 4", "1, 7, 4"})
+  void shouldSelectZeroBiddingStrategy(int myWonQuantity, int opponentWonQuantity, int leftQuantity) {
     // given
-    int initialQuantity = calculateInitialQuantity(myWonQuantity, leftQuantity, opponentQuantity);
-    BiddingStrategy givenStrategy = mock(BiddingStrategy.class);
+    int initialQuantity = calculateInitialQuantity(myWonQuantity, leftQuantity, opponentWonQuantity);
+    BiddingStrategy givenStrategy = mock(ZeroBiddingStrategy.class);
     when(auctionStrategies.get(ZERO_BID)).thenReturn(givenStrategy);
     List<RoundResult> roundResults = givenRoundResults();
-    when(statisticsService.calculateOpponentQuantity(roundResults)).thenReturn(opponentQuantity);
+    when(statisticsService.calculateOpponentQuantity(roundResults)).thenReturn(opponentWonQuantity);
 
     // when
     Optional<BiddingStrategy> biddingStrategy = strategyFactory.buildStrategy(myWonQuantity, roundResults, initialQuantity, 0);
@@ -64,12 +65,12 @@ class StrategyFactoryUnitTest extends UnitTest {
   @DisplayName("Should select MinimumBiddingStrategy during first round")
   void shouldSelectMinimumBiddingStrategyDuringFirstRound() {
     // given
-    BiddingStrategy givenStrategy = mock(BiddingStrategy.class);
+    BiddingStrategy givenStrategy = mock(MinimumBidStrategy.class);
     when(auctionStrategies.get(MINIMUM_BID)).thenReturn(givenStrategy);
     List<RoundResult> roundResults = Collections.emptyList();
 
     // when
-    Optional<BiddingStrategy> biddingStrategy = strategyFactory.buildStrategy(0, roundResults, 10, 0);
+    Optional<BiddingStrategy> biddingStrategy = strategyFactory.buildStrategy(0, roundResults, 12, 0);
 
     // then
     assertThat(biddingStrategy).hasValue(givenStrategy);
@@ -79,15 +80,37 @@ class StrategyFactoryUnitTest extends UnitTest {
   }
 
   @Test
+  @DisplayName("Should not select MinimumBiddingStrategy during first round if initial QU less than defined amount")
+  void shouldNotSelectMinimumBiddingStrategyDuringFirstRoundIfInitialQuantityAmountIsLessThanDefined() {
+    // given
+    BiddingStrategy givenStrategy = mock(AggressiveBiddingStrategy.class);
+    when(auctionStrategies.get(any(StrategyName.class))).thenReturn(givenStrategy);
+    List<RoundResult> roundResults = Collections.emptyList();
+    when(statisticsService.calculateOpponentRemainingCash(roundResults, INITIAL_CASH)).thenReturn(INITIAL_CASH);
+    int initialQuantity = 8;
+
+    // when
+    Optional<BiddingStrategy> biddingStrategy = strategyFactory.buildStrategy(0, roundResults, initialQuantity, INITIAL_CASH);
+
+    // then
+    assertThat(biddingStrategy).hasValue(givenStrategy);
+    verify(auctionStrategies).get(AGGRESSIVE);
+    verify(statisticsService, times(2)).calculateOpponentQuantity(roundResults);
+    verify(statisticsService).calculateOpponentRemainingCash(roundResults, INITIAL_CASH);
+    verify(statisticsService).calculateMyRemainingCash(roundResults, INITIAL_CASH);
+    verifyNoMoreInteractions(statisticsService, auctionStrategies);
+  }
+
+  @Test
   @DisplayName("Should select MinimumBiddingStrategy, if yet not enough QU to win and opponent has no money")
   void shouldSelectMinimumBiddingStrategyIfNotEnoughToWin() {
     // given
-    BiddingStrategy givenStrategy = mock(BiddingStrategy.class);
+    BiddingStrategy givenStrategy = mock(MinimumBidStrategy.class);
     when(auctionStrategies.get(MINIMUM_BID)).thenReturn(givenStrategy);
     List<RoundResult> roundResults = List.of(RoundResult.builder().withOpponentRemainingCash(0).build());
 
     // when
-    Optional<BiddingStrategy> biddingStrategy = strategyFactory.buildStrategy(0, roundResults, 0,0);
+    Optional<BiddingStrategy> biddingStrategy = strategyFactory.buildStrategy(0, roundResults, 0, 0);
 
     // then
     assertThat(biddingStrategy).hasValue(givenStrategy);
@@ -100,19 +123,19 @@ class StrategyFactoryUnitTest extends UnitTest {
   @DisplayName("Should not select MinimumBiddingStrategy, if yet not enough QU to win and opponent has money")
   void shouldNotSelectMinimumBiddingStrategyIfNotEnoughToWinAndOpponentHasMoney() {
     // given
-    BiddingStrategy givenStrategy = mock(BiddingStrategy.class);
+    BiddingStrategy givenStrategy = mock(AggressiveBiddingStrategy.class);
     when(auctionStrategies.get(AGGRESSIVE)).thenReturn(givenStrategy);
     List<RoundResult> roundResults = List.of(RoundResult.builder().withOpponentRemainingCash(1).build());
 
     // when
-    Optional<BiddingStrategy> biddingStrategy = strategyFactory.buildStrategy(0, roundResults, 0,INITIAL_CASH);
+    Optional<BiddingStrategy> biddingStrategy = strategyFactory.buildStrategy(0, roundResults, 0, INITIAL_CASH);
 
     // then
     assertThat(biddingStrategy).hasValue(givenStrategy);
     verify(auctionStrategies).get(AGGRESSIVE);
     verify(statisticsService, times(2)).calculateOpponentQuantity(roundResults);
-    verify(statisticsService).calculateOpponentRemainingCash(roundResults,INITIAL_CASH);
-    verify(statisticsService).calculateMyRemainingCash(roundResults,INITIAL_CASH);
+    verify(statisticsService).calculateOpponentRemainingCash(roundResults, INITIAL_CASH);
+    verify(statisticsService).calculateMyRemainingCash(roundResults, INITIAL_CASH);
     verifyNoMoreInteractions(statisticsService, auctionStrategies);
   }
 
@@ -121,7 +144,7 @@ class StrategyFactoryUnitTest extends UnitTest {
   void shouldSelectAggressiveStrategy(int myWonQuantity, int opponentQuantity, int leftQuantity) {
     // given
     int initialQuantity = calculateInitialQuantity(myWonQuantity, leftQuantity, opponentQuantity);
-    BiddingStrategy givenStrategy = mock(BiddingStrategy.class);
+    BiddingStrategy givenStrategy = mock(AggressiveBiddingStrategy.class);
     when(auctionStrategies.get(AGGRESSIVE)).thenReturn(givenStrategy);
     List<RoundResult> roundResults = List.of(
       RoundResult.builder()
@@ -131,7 +154,7 @@ class StrategyFactoryUnitTest extends UnitTest {
         .withOpponentRemainingCash(INITIAL_CASH)
         .withOpponentWonQuantity(opponentQuantity)
         .build());
-    when(statisticsService.calculateOpponentRemainingCash(roundResults,INITIAL_CASH)).thenReturn(INITIAL_CASH);
+    when(statisticsService.calculateOpponentRemainingCash(roundResults, INITIAL_CASH)).thenReturn(INITIAL_CASH);
 
     // when
     Optional<BiddingStrategy> biddingStrategy = strategyFactory.buildStrategy(myWonQuantity, roundResults, initialQuantity, INITIAL_CASH);
@@ -140,8 +163,8 @@ class StrategyFactoryUnitTest extends UnitTest {
     assertThat(biddingStrategy).hasValue(givenStrategy);
     verify(auctionStrategies).get(AGGRESSIVE);
     verify(statisticsService, times(2)).calculateOpponentQuantity(roundResults);
-    verify(statisticsService).calculateOpponentRemainingCash(roundResults,INITIAL_CASH);
-    verify(statisticsService).calculateMyRemainingCash(roundResults,INITIAL_CASH);
+    verify(statisticsService).calculateOpponentRemainingCash(roundResults, INITIAL_CASH);
+    verify(statisticsService).calculateMyRemainingCash(roundResults, INITIAL_CASH);
     verifyNoMoreInteractions(statisticsService, auctionStrategies);
   }
 
@@ -154,7 +177,7 @@ class StrategyFactoryUnitTest extends UnitTest {
     int opponentWonQuantity = 10;
     int opponentRemainingCash = 5;
     int myRemainingCash = 10;
-    BiddingStrategy givenStrategy = mock(BiddingStrategy.class);
+    BiddingStrategy givenStrategy = mock(DefaultBiddingStrategy.class);
     when(auctionStrategies.get(DEFAULT)).thenReturn(givenStrategy);
     List<RoundResult> roundResults = List.of(RoundResult.builder()
       .withMyWonQuantity(myWonQuantity)
@@ -162,8 +185,8 @@ class StrategyFactoryUnitTest extends UnitTest {
       .withOpponentWonQuantity(opponentWonQuantity)
       .build());
     when(statisticsService.calculateOpponentQuantity(roundResults)).thenReturn(opponentWonQuantity);
-    when(statisticsService.calculateOpponentRemainingCash(roundResults,INITIAL_CASH)).thenReturn(opponentWonQuantity);
-    when(statisticsService.calculateMyRemainingCash(roundResults,INITIAL_CASH)).thenReturn(myRemainingCash);
+    when(statisticsService.calculateOpponentRemainingCash(roundResults, INITIAL_CASH)).thenReturn(opponentWonQuantity);
+    when(statisticsService.calculateMyRemainingCash(roundResults, INITIAL_CASH)).thenReturn(myRemainingCash);
 
     // when
     Optional<BiddingStrategy> biddingStrategy = strategyFactory.buildStrategy(myWonQuantity, roundResults, initialQuantity, INITIAL_CASH);
@@ -172,8 +195,8 @@ class StrategyFactoryUnitTest extends UnitTest {
     assertThat(biddingStrategy).hasValue(givenStrategy);
     verify(auctionStrategies).get(DEFAULT);
     verify(statisticsService, times(2)).calculateOpponentQuantity(roundResults);
-    verify(statisticsService).calculateOpponentRemainingCash(roundResults,INITIAL_CASH);
-    verify(statisticsService).calculateMyRemainingCash(roundResults,INITIAL_CASH);
+    verify(statisticsService).calculateOpponentRemainingCash(roundResults, INITIAL_CASH);
+    verify(statisticsService).calculateMyRemainingCash(roundResults, INITIAL_CASH);
     verifyNoMoreInteractions(statisticsService, auctionStrategies);
   }
 

@@ -12,10 +12,6 @@ public class RoundResult {
 
   private final int opponentWonQuantity;
 
-  public static Builder builder() {
-    return new Builder();
-  }
-
   private RoundResult(Builder builder) {
     this.myBid = builder.myBid;
 
@@ -23,6 +19,10 @@ public class RoundResult {
     this.opponentBid = builder.opponentBid;
     this.opponentRemainingCash = builder.opponentRemainingCash;
     this.opponentWonQuantity = builder.opponentWonQuantity;
+  }
+
+  public static Builder builder() {
+    return new Builder();
   }
 
   public int getMyBid() {

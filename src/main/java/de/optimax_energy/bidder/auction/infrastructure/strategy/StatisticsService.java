@@ -6,7 +6,7 @@ import java.util.List;
 
 public class StatisticsService {
 
-   public int calculateOpponentQuantity(List<RoundResult> roundResults) {
+  public int calculateOpponentQuantity(List<RoundResult> roundResults) {
     return roundResults.stream()
       .map(RoundResult::getOpponentWonQuantity)
       .reduce(0, Integer::sum);

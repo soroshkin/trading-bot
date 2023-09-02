@@ -4,6 +4,6 @@ public enum StrategyName {
   ZERO_BID,
   AGGRESSIVE,
   MINIMUM_BID,
-  DEFAULT,
-  UNKNOWN
+  MAXIMUM_BID,
+  DEFAULT
 }

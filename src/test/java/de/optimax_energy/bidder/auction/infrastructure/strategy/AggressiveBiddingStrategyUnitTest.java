@@ -2,6 +2,7 @@ package de.optimax_energy.bidder.auction.infrastructure.strategy;
 
 import de.optimax_energy.bidder.UnitTest;
 import de.optimax_energy.bidder.auction.api.dto.RoundResult;
+import de.optimax_energy.bidder.auction.api.dto.StrategyName;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -119,6 +120,16 @@ class AggressiveBiddingStrategyUnitTest extends UnitTest {
     verify(statisticsService).calculateMyQuantity(roundResults);
     verify(statisticsService).calculateOpponentAverageBid(roundResults);
     verifyNoMoreInteractions(statisticsService);
+  }
+
+  @Test
+  @DisplayName("Should return strategy name")
+  void shouldReturnStrategyName() {
+    // when
+    StrategyName strategyName = aggressiveBiddingStrategy.getStrategyName();
+
+    // then
+    assertThat(strategyName).isEqualTo(StrategyName.AGGRESSIVE);
   }
 
   private List<RoundResult> givenRoundResults() {
