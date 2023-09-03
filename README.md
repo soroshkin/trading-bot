@@ -21,6 +21,8 @@ AggressiveBiddingStrategy behaves differently, it multiplies opponent's bid by 1
 The algorithm is not optimal and can be improved:
 - it's efficiency significantly varies depending on initial QU and MU amount
 - default strategy doesn't perform as well as expected, needs investigation
+- statistics service calculates opponent average bid on 2 last rounds, but in many cases getting just last bid is more effective, needs investigation
+- review coefficients
 - additional strategies can be added:
   in case when the opponent always bids with same amount
   save money strategy
