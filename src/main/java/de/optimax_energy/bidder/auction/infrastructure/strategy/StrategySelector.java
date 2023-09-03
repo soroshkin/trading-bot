@@ -91,8 +91,7 @@ public class StrategySelector {
   }
 
   /**
-   * This method calculates if more aggressive strategy should be chosen.
-   * it returns true in one of these cases:
+   * This method calculates if more aggressive strategy should be chosen, it returns true in one of these cases:
    * 1. if bot has less money and QU than opponent. It means opponent bids higher and wins.
    * 2. if the ratio of amount of QU left to win and remaining QU higher than given threshold
    *

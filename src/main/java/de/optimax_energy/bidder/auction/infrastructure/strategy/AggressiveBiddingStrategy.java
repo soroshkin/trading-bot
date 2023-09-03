@@ -16,7 +16,7 @@ class AggressiveBiddingStrategy implements BiddingStrategy {
 
   @Override
   public int placeBid(List<RoundResult> roundResults, int initialQuantity, int initialCash) {
-    return calculateAveragePriceOfBidToWin(roundResults, initialQuantity, initialCash);
+    return calculateBid(roundResults, initialQuantity, initialCash);
   }
 
   @Override
@@ -24,7 +24,16 @@ class AggressiveBiddingStrategy implements BiddingStrategy {
     return StrategyName.AGGRESSIVE;
   }
 
-  private int calculateAveragePriceOfBidToWin(List<RoundResult> roundResults, int initialQuantity, int initialCash) {
+  /**
+   * This method calculates bid. The main idea to bid 1.34 times higher than opponent's average bid.
+   * The assumption is that opponent bids obey normal law.
+   *
+   * @param roundResults results of previous rounds
+   * @param initialQuantity initial amount of QU
+   * @param initialCash  initial amount of MU
+   * @return bid
+   */
+  private int calculateBid(List<RoundResult> roundResults, int initialQuantity, int initialCash) {
     int opponentQuantity = statisticsService.calculateOpponentQuantity(roundResults);
     int myCurrentQuantity = statisticsService.calculateMyQuantity(roundResults);
     int remainingQuantity = initialQuantity - myCurrentQuantity - opponentQuantity;
@@ -36,7 +45,7 @@ class AggressiveBiddingStrategy implements BiddingStrategy {
       return Math.min(opponentRemainingCash + 1, myRemainingCash);
     }
 
-    // the assumption is if the bid ~1.34 times higher than average, then bot's bid should be higher in ~84% of cases
+    // the assumption is: if the bid ~1.34 times higher than average, then bot's bid should be higher in ~84% of cases
     // due to normal distribution of the opponent's bids
     double oneSigmaMultiplier = 1.34;
     int maxBidMultiplier = 3;
