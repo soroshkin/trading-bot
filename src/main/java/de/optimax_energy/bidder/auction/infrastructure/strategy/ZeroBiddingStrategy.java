@@ -6,7 +6,7 @@ import de.optimax_energy.bidder.auction.api.dto.StrategyName;
 
 import java.util.List;
 
-public class ZeroBiddingStrategy implements BiddingStrategy {
+class ZeroBiddingStrategy implements BiddingStrategy {
 
   @Override
   public int placeBid(List<RoundResult> roundResults, int initialQuantity, int initialCash) {

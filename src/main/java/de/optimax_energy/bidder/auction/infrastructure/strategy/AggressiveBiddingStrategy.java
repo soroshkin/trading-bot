@@ -6,11 +6,11 @@ import de.optimax_energy.bidder.auction.api.dto.StrategyName;
 
 import java.util.List;
 
-public class AggressiveBiddingStrategy implements BiddingStrategy {
+class AggressiveBiddingStrategy implements BiddingStrategy {
 
   private final StatisticsService statisticsService;
 
-  public AggressiveBiddingStrategy(StatisticsService statisticsService) {
+  AggressiveBiddingStrategy(StatisticsService statisticsService) {
     this.statisticsService = statisticsService;
   }
 
@@ -39,7 +39,7 @@ public class AggressiveBiddingStrategy implements BiddingStrategy {
     // the assumption is if the bid ~1.34 times higher than average, then bot's bid should be higher in ~84% of cases
     // due to normal distribution of the opponent's bids
     double oneSigmaMultiplier = 1.34;
-    int maxBidMultiplier = 2;
+    int maxBidMultiplier = 3;
     int maxBid = maxBidMultiplier * (myRemainingCash / (requiredQuantityNotToLoose / AMOUNT_OF_PRODUCTS_IN_ONE_ROUND));
     int opponentAverageBid = statisticsService.calculateOpponentAverageBid(roundResults);
     int bid = Math.min((int) Math.round(opponentAverageBid * oneSigmaMultiplier), maxBid);
@@ -49,7 +49,7 @@ public class AggressiveBiddingStrategy implements BiddingStrategy {
       return opponentRemainingCash + 1;
     }
 
-    if (opponentAverageBid < 10) {
+    if (opponentAverageBid < MINIMUM_INITIAL_QUANTITY_TO_APPLY_MINIMUM_BID_STRATEGY) {
       bid = opponentAverageBid + 2;
     }
 

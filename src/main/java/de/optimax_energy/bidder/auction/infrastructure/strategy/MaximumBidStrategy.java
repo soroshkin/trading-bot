@@ -6,7 +6,7 @@ import de.optimax_energy.bidder.auction.api.dto.StrategyName;
 
 import java.util.List;
 
-public class MaximumBidStrategy implements BiddingStrategy {
+class MaximumBidStrategy implements BiddingStrategy {
 
   @Override
   public int placeBid(List<RoundResult> roundResults, int initialQuantity, int initialCash) {

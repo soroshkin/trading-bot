@@ -1,10 +1,8 @@
 package de.optimax_energy.bidder.auction;
 
-import de.optimax_energy.bidder.BidderTestConfiguration;
 import de.optimax_energy.bidder.IntegrationTest;
 import de.optimax_energy.bidder.auction.api.AuctionResultStorageOperations;
 import de.optimax_energy.bidder.auction.api.Bidder;
-import de.optimax_energy.bidder.auction.infrastructure.TradingBot;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -44,14 +42,6 @@ class AuctionIntegrationTest extends IntegrationTest {
   private AuctionResultStorageOperations auctionResultStorageOperations;
 
   private int initialQuantity;
-
-  void setUp(int initialQuantity, int initialCash) {
-    this.initialQuantity = initialQuantity;
-    tradingBot.init(initialQuantity, initialCash);
-    dummyBidder.init(initialQuantity, initialCash);
-    randomBidder.init(initialQuantity, initialCash);
-    auctionResultStorageOperations.getRoundResultsForBidder(tradingBot.getUuid()).clear();
-  }
 
   @ParameterizedTest(name = "Should win dummy bidder. initialQuantity={0}, initialCash={1}")
   @CsvSource({"50, 100", "100, 10000", "100, 1000", "10, 1000", "2, 200"})
@@ -95,8 +85,16 @@ class AuctionIntegrationTest extends IntegrationTest {
     assertThat(bidder).isEqualTo(tradingBot);
   }
 
+  private void setUp(int initialQuantity, int initialCash) {
+    this.initialQuantity = initialQuantity;
+    tradingBot.init(initialQuantity, initialCash);
+    dummyBidder.init(initialQuantity, initialCash);
+    randomBidder.init(initialQuantity, initialCash);
+    auctionResultStorageOperations.getRoundResultsForBidder(tradingBot.getUuid()).clear();
+  }
+
   private Bidder startAuction(TradingBot tradingBot, TradingBot dummyBot) {
-    int iterationIndex = 1;
+    int roundIndex = 1;
     int quantityToPlay = initialQuantity;
     while (quantityToPlay >= AMOUNT_OF_PRODUCTS_IN_ONE_ROUND) {
       int tradingBotBid = tradingBot.placeBid();
@@ -106,9 +104,9 @@ class AuctionIntegrationTest extends IntegrationTest {
       dummyBot.bids(dummyBidderBid, tradingBotBid);
       quantityToPlay -= AMOUNT_OF_PRODUCTS_IN_ONE_ROUND;
 
-      logger.info("Round {}. Trading bot remaining cash: {}, dummy bot remaining cash: {}", iterationIndex, tradingBot.getRemainingCash(), dummyBot.getRemainingCash());
-      logger.info("Round {}. Trading bot quantity: {}, dummy bot quantity: {}", iterationIndex, tradingBot.getQuantity(), dummyBot.getQuantity());
-      iterationIndex++;
+      logger.info("Round {}. Trading bot remaining cash: {}, dummy bot remaining cash: {}", roundIndex, tradingBot.getRemainingCash(), dummyBot.getRemainingCash());
+      logger.info("Round {}. Trading bot quantity: {}, dummy bot quantity: {}", roundIndex, tradingBot.getQuantity(), dummyBot.getQuantity());
+      roundIndex++;
     }
 
     return chooseWinner(tradingBot, dummyBot);

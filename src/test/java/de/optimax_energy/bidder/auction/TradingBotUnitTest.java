@@ -4,10 +4,9 @@ import de.optimax_energy.bidder.UnitTest;
 import de.optimax_energy.bidder.auction.api.BiddingStrategy;
 import de.optimax_energy.bidder.auction.api.dto.RoundResult;
 import de.optimax_energy.bidder.auction.api.dto.StrategyNotFoundException;
-import de.optimax_energy.bidder.auction.infrastructure.TradingBot;
 import de.optimax_energy.bidder.auction.infrastructure.storage.AuctionResultInMemoryStorageService;
 import de.optimax_energy.bidder.auction.infrastructure.strategy.StatisticsService;
-import de.optimax_energy.bidder.auction.infrastructure.strategy.StrategyFactory;
+import de.optimax_energy.bidder.auction.infrastructure.strategy.StrategySelector;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,7 +40,7 @@ class TradingBotUnitTest extends UnitTest {
   private StatisticsService statisticsService;
 
   @Mock
-  private StrategyFactory strategyFactory;
+  private StrategySelector strategySelector;
 
   @Mock
   private AuctionResultInMemoryStorageService auctionResultInMemoryStorageService;
@@ -65,7 +64,7 @@ class TradingBotUnitTest extends UnitTest {
     when(auctionResultInMemoryStorageService.getRoundResultsForBidder(anyString())).thenReturn(roundResults);
     BiddingStrategy givenStrategy = mock(BiddingStrategy.class);
     when(givenStrategy.placeBid(roundResults, INITIAL_QUANTITY, INITIAL_CASH)).thenReturn(0);
-    when(strategyFactory.buildStrategy(anyInt(), refEq(roundResults), anyInt(), anyInt())).thenReturn(Optional.of(givenStrategy));
+    when(strategySelector.select(refEq(roundResults), anyInt(), anyInt())).thenReturn(Optional.of(givenStrategy));
 
     // when
     int bid = tradingBot.placeBid();
@@ -73,7 +72,7 @@ class TradingBotUnitTest extends UnitTest {
     // then
     assertThat(bid).isZero();
     verify(auctionResultInMemoryStorageService).getRoundResultsForBidder(anyString());
-    verify(strategyFactory).buildStrategy(anyInt(), refEq(roundResults), anyInt(), anyInt());
+    verify(strategySelector).select(refEq(roundResults), anyInt(), anyInt());
     verify(givenStrategy).placeBid(roundResults, INITIAL_QUANTITY, INITIAL_CASH);
     verifyNoMoreInteractions(statisticsService, auctionResultInMemoryStorageService, statisticsService);
   }
@@ -86,7 +85,7 @@ class TradingBotUnitTest extends UnitTest {
     when(auctionResultInMemoryStorageService.getRoundResultsForBidder(anyString())).thenReturn(roundResults);
     BiddingStrategy givenStrategy = mock(BiddingStrategy.class);
     when(givenStrategy.placeBid(roundResults, INITIAL_QUANTITY, INITIAL_CASH)).thenReturn(0);
-    when(strategyFactory.buildStrategy(anyInt(), refEq(roundResults), anyInt(), anyInt())).thenReturn(Optional.of(givenStrategy));
+    when(strategySelector.select(refEq(roundResults), anyInt(), anyInt())).thenReturn(Optional.of(givenStrategy));
 
     // when
     int bid = tradingBot.placeBid();
@@ -94,7 +93,7 @@ class TradingBotUnitTest extends UnitTest {
     // then
     assertThat(bid).isZero();
     verify(auctionResultInMemoryStorageService).getRoundResultsForBidder(anyString());
-    verify(strategyFactory).buildStrategy(anyInt(), refEq(roundResults), anyInt(), anyInt());
+    verify(strategySelector).select(refEq(roundResults), anyInt(), anyInt());
     verify(givenStrategy).placeBid(roundResults, INITIAL_QUANTITY, INITIAL_CASH);
     verifyNoMoreInteractions(statisticsService, auctionResultInMemoryStorageService, statisticsService);
   }
@@ -105,7 +104,7 @@ class TradingBotUnitTest extends UnitTest {
     // given
     List<RoundResult> roundResults = givenRoundResults();
     when(auctionResultInMemoryStorageService.getRoundResultsForBidder(anyString())).thenReturn(roundResults);
-    when(strategyFactory.buildStrategy(anyInt(), refEq(roundResults), anyInt(), anyInt())).thenReturn(Optional.empty());
+    when(strategySelector.select(refEq(roundResults), anyInt(), anyInt())).thenReturn(Optional.empty());
 
     // when - then
     assertThatThrownBy(() -> tradingBot.placeBid())
@@ -113,7 +112,7 @@ class TradingBotUnitTest extends UnitTest {
       .hasMessage("Could not select strategy");
 
     verify(auctionResultInMemoryStorageService).getRoundResultsForBidder(anyString());
-    verify(strategyFactory).buildStrategy(anyInt(), refEq(roundResults), anyInt(), anyInt());
+    verify(strategySelector).select(refEq(roundResults), anyInt(), anyInt());
     verifyNoMoreInteractions(statisticsService, auctionResultInMemoryStorageService, statisticsService);
   }
 

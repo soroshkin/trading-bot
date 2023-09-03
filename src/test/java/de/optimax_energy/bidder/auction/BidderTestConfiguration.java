@@ -1,8 +1,8 @@
-package de.optimax_energy.bidder;
+package de.optimax_energy.bidder.auction;
 
 import de.optimax_energy.bidder.auction.api.AuctionResultStorageOperations;
 import de.optimax_energy.bidder.auction.api.Bidder;
-import de.optimax_energy.bidder.auction.infrastructure.TradingBot;
+import de.optimax_energy.bidder.auction.TradingBot;
 import de.optimax_energy.bidder.auction.infrastructure.strategy.StatisticsService;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -32,7 +32,8 @@ public class BidderTestConfiguration {
       @Override
       public int placeBid() {
         int halfOfBids = getInitialQuantity() / AMOUNT_OF_PRODUCTS_IN_ONE_ROUND;
-        int bid = (int) new Random().nextDouble(1.5 * getInitialCash() / halfOfBids);
+        double botMaxBidMultiplier = 1.5;
+        int bid = new Random().nextInt((int) (botMaxBidMultiplier * getInitialCash() / halfOfBids));
         return Math.min(getRemainingCash(), bid);
       }
     };
@@ -43,7 +44,7 @@ public class BidderTestConfiguration {
     return new TradingBot(null, auctionResultStorageOperations, statisticsService) {
       @Override
       public int placeBid() {
-        int bid = getInitialCash() / (getInitialQuantity() / 2 - 1);
+        int bid = getInitialCash() / (getInitialQuantity() / AMOUNT_OF_PRODUCTS_IN_ONE_ROUND - 1);
         return Math.min(getRemainingCash(), bid);
       }
     };

@@ -1,4 +1,4 @@
-package de.optimax_energy.bidder.auction.infrastructure;
+package de.optimax_energy.bidder.auction;
 
 import de.optimax_energy.bidder.auction.api.AuctionResultStorageOperations;
 import de.optimax_energy.bidder.auction.api.Bidder;
@@ -6,7 +6,7 @@ import de.optimax_energy.bidder.auction.api.BiddingStrategy;
 import de.optimax_energy.bidder.auction.api.dto.RoundResult;
 import de.optimax_energy.bidder.auction.api.dto.StrategyNotFoundException;
 import de.optimax_energy.bidder.auction.infrastructure.strategy.StatisticsService;
-import de.optimax_energy.bidder.auction.infrastructure.strategy.StrategyFactory;
+import de.optimax_energy.bidder.auction.infrastructure.strategy.StrategySelector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,11 +15,11 @@ import java.util.UUID;
 
 import static de.optimax_energy.bidder.auction.api.BiddingStrategy.AMOUNT_OF_PRODUCTS_IN_ONE_ROUND;
 
-public class TradingBot implements Bidder {
+class TradingBot implements Bidder {
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
 
-  private final StrategyFactory strategyFactory;
+  private final StrategySelector strategySelector;
 
   private final AuctionResultStorageOperations auctionResultStorageOperations;
 
@@ -35,8 +35,8 @@ public class TradingBot implements Bidder {
 
   private int remainingCash;
 
-  public TradingBot(StrategyFactory strategyFactory, AuctionResultStorageOperations auctionResultStorageOperations, StatisticsService statisticsService) {
-    this.strategyFactory = strategyFactory;
+  TradingBot(StrategySelector strategySelector, AuctionResultStorageOperations auctionResultStorageOperations, StatisticsService statisticsService) {
+    this.strategySelector = strategySelector;
     this.auctionResultStorageOperations = auctionResultStorageOperations;
     this.statisticsService = statisticsService;
     this.uuid = UUID.randomUUID().toString();
@@ -53,7 +53,7 @@ public class TradingBot implements Bidder {
   @Override
   public int placeBid() {
     List<RoundResult> roundResults = auctionResultStorageOperations.getRoundResultsForBidder(uuid);
-    BiddingStrategy selectedStrategy = strategyFactory.buildStrategy(quantity, roundResults, initialQuantity, initialCash)
+    BiddingStrategy selectedStrategy = strategySelector.select(roundResults, initialQuantity, initialCash)
       .orElseThrow(() -> new StrategyNotFoundException("Could not select strategy"));
     int bid = selectedStrategy.placeBid(roundResults, initialQuantity, initialCash);
 
@@ -123,15 +123,5 @@ public class TradingBot implements Bidder {
 
   public String getUuid() {
     return uuid;
-  }
-
-  @Override
-  public String toString() {
-    return "TradingBot{" +
-      "initialQuantity=" + initialQuantity +
-      ", initialCash=" + initialCash +
-      ", quantity=" + quantity +
-      ", remainingCash=" + remainingCash +
-      '}';
   }
 }
