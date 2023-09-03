@@ -16,3 +16,13 @@ They claim that "For all vi ∈ (0, 1], the first and second order conditions ar
 and "Therefore, bidder i maximizes her utility by bidding $`bi = (n−1)*Vi/n`$", where $`n`$ - number of bidders, $`Vi`$ - value of product (which is unknown). The assumption is that opponent's evaluation ($`Vi`$) is equal to initial cash divided by half of initial QU plus one.
 
 AggressiveBiddingStrategy behaves differently, it multiplies opponent's bid by 1.34, but not higher than (myRemainingCash / (requiredQuantityNotToLoose / AMOUNT_OF_PRODUCTS_IN_ONE_ROUND)) multiplied by 3.
+
+## Further improvements
+The algorithm is not optimal and can be improved:
+- it's efficiency significantly varies depending on initial QU and MU amount
+- default strategy doesn't perform as well as expected, needs investigation
+- additional strategies can be added:
+  in case when the opponent always bids with same amount
+  save money strategy
+  strategies for very high/low QU/MU
+  etc.
