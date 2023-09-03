@@ -28,7 +28,7 @@ public class StatisticsService {
   }
 
   public int calculateOpponentAverageBid(List<RoundResult> roundResults) {
-    int numberOfLastBids = 1;
+    int numberOfLastBids = 2;
     List<RoundResult> roundResultsForAverageCalculation = (roundResults.size() >= numberOfLastBids)
       ? roundResults.subList(roundResults.size() - numberOfLastBids, roundResults.size())
       : roundResults;

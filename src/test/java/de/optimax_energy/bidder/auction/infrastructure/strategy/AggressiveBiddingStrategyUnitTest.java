@@ -17,10 +17,6 @@ import static org.mockito.Mockito.when;
 
 class AggressiveBiddingStrategyUnitTest extends UnitTest {
 
-  private static final int INITIAL_CASH = 1000;
-
-  private static final int INITIAL_QUANTITY = 10;
-
   @Mock
   private StatisticsService statisticsService;
 
