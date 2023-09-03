@@ -1,7 +1,7 @@
 package de.optimax_energy.bidder.auction;
 
 import de.optimax_energy.bidder.IntegrationTest;
-import de.optimax_energy.bidder.auction.api.AuctionResultStorageOperations;
+import de.optimax_energy.bidder.auction.api.RoundResultStorageOperations;
 import de.optimax_energy.bidder.auction.api.Bidder;
 import de.optimax_energy.bidder.auction.infrastructure.strategy.StatisticsService;
 import de.optimax_energy.bidder.auction.infrastructure.strategy.StrategySelector;
@@ -20,7 +20,7 @@ class AutoConfigurationIntegrationTest extends IntegrationTest {
   private StrategySelector strategySelector;
 
   @Autowired(required = false)
-  private AuctionResultStorageOperations auctionResultStorageOperations;
+  private RoundResultStorageOperations roundResultStorageOperations;
 
   @Autowired(required = false)
   private StatisticsService statisticsService;
@@ -30,7 +30,7 @@ class AutoConfigurationIntegrationTest extends IntegrationTest {
   void shouldAutowireBeans() {
     assertThat(tradingBot).isNotNull();
     assertThat(strategySelector).isNotNull();
-    assertThat(auctionResultStorageOperations).isNotNull();
+    assertThat(roundResultStorageOperations).isNotNull();
     assertThat(statisticsService).isNotNull();
   }
 }

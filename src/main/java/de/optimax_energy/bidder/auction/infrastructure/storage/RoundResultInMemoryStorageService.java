@@ -1,6 +1,6 @@
 package de.optimax_energy.bidder.auction.infrastructure.storage;
 
-import de.optimax_energy.bidder.auction.api.AuctionResultStorageOperations;
+import de.optimax_energy.bidder.auction.api.RoundResultStorageOperations;
 import de.optimax_energy.bidder.auction.api.dto.RoundResult;
 
 import java.util.Collections;
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class AuctionResultInMemoryStorageService implements AuctionResultStorageOperations {
+public class RoundResultInMemoryStorageService implements RoundResultStorageOperations {
 
   private final Map<String, List<RoundResult>> roundResults = new HashMap<>();
 

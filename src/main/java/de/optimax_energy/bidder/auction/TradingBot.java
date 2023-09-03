@@ -1,6 +1,6 @@
 package de.optimax_energy.bidder.auction;
 
-import de.optimax_energy.bidder.auction.api.AuctionResultStorageOperations;
+import de.optimax_energy.bidder.auction.api.RoundResultStorageOperations;
 import de.optimax_energy.bidder.auction.api.Bidder;
 import de.optimax_energy.bidder.auction.api.BiddingStrategy;
 import de.optimax_energy.bidder.auction.api.dto.RoundResult;
@@ -21,7 +21,7 @@ class TradingBot implements Bidder {
 
   private final StrategySelector strategySelector;
 
-  private final AuctionResultStorageOperations auctionResultStorageOperations;
+  private final RoundResultStorageOperations roundResultStorageOperations;
 
   private final StatisticsService statisticsService;
 
@@ -35,9 +35,9 @@ class TradingBot implements Bidder {
 
   private int remainingCash;
 
-  TradingBot(StrategySelector strategySelector, AuctionResultStorageOperations auctionResultStorageOperations, StatisticsService statisticsService) {
+  TradingBot(StrategySelector strategySelector, RoundResultStorageOperations roundResultStorageOperations, StatisticsService statisticsService) {
     this.strategySelector = strategySelector;
-    this.auctionResultStorageOperations = auctionResultStorageOperations;
+    this.roundResultStorageOperations = roundResultStorageOperations;
     this.statisticsService = statisticsService;
     this.uuid = UUID.randomUUID().toString();
   }
@@ -52,7 +52,7 @@ class TradingBot implements Bidder {
 
   @Override
   public int placeBid() {
-    List<RoundResult> roundResults = auctionResultStorageOperations.getRoundResultsForBidder(uuid);
+    List<RoundResult> roundResults = roundResultStorageOperations.getRoundResultsForBidder(uuid);
     BiddingStrategy selectedStrategy = strategySelector.select(roundResults, initialQuantity, initialCash)
       .orElseThrow(() -> new StrategyNotFoundException("Could not select strategy"));
     int bid = selectedStrategy.placeBid(roundResults, initialQuantity, initialCash);
@@ -63,12 +63,12 @@ class TradingBot implements Bidder {
   @Override
   public void bids(int myBid, int opponentBid) {
     logger.info("My bid is {}, competitor's bid is {}", myBid, opponentBid);
-    auctionResultStorageOperations.addRoundResultForBidder(uuid, calculateRoundResult(myBid, opponentBid));
+    roundResultStorageOperations.addRoundResultForBidder(uuid, calculateRoundResult(myBid, opponentBid));
   }
 
   private RoundResult calculateRoundResult(int myBid, int opponentBid) {
     int opponentRemainingCashInLastRound = statisticsService.calculateOpponentRemainingCash(
-      auctionResultStorageOperations.getRoundResultsForBidder(uuid), initialCash);
+      roundResultStorageOperations.getRoundResultsForBidder(uuid), initialCash);
     int opponentRemainingCash = opponentRemainingCashInLastRound - opponentBid;
     remainingCash -= myBid;
 

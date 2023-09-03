@@ -15,7 +15,7 @@ class AuctionResultInMemoryStorageServiceUnitTest extends UnitTest {
 
   private static final String ANOTHER_UUID = "1";
 
-  private final AuctionResultInMemoryStorageService auctionResultInMemoryStorageService = new AuctionResultInMemoryStorageService();
+  private final RoundResultInMemoryStorageService auctionResultInMemoryStorageService = new RoundResultInMemoryStorageService();
 
   @Test
   @DisplayName("Should add round result")

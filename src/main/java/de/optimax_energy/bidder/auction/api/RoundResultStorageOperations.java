@@ -4,7 +4,7 @@ import de.optimax_energy.bidder.auction.api.dto.RoundResult;
 
 import java.util.List;
 
-public interface AuctionResultStorageOperations {
+public interface RoundResultStorageOperations {
 
   void addRoundResultForBidder(String bidderUuid, RoundResult roundResult);
 

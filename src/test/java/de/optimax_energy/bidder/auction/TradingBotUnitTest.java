@@ -4,7 +4,7 @@ import de.optimax_energy.bidder.UnitTest;
 import de.optimax_energy.bidder.auction.api.BiddingStrategy;
 import de.optimax_energy.bidder.auction.api.dto.RoundResult;
 import de.optimax_energy.bidder.auction.api.dto.StrategyNotFoundException;
-import de.optimax_energy.bidder.auction.infrastructure.storage.AuctionResultInMemoryStorageService;
+import de.optimax_energy.bidder.auction.infrastructure.storage.RoundResultInMemoryStorageService;
 import de.optimax_energy.bidder.auction.infrastructure.strategy.StatisticsService;
 import de.optimax_energy.bidder.auction.infrastructure.strategy.StrategySelector;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +43,7 @@ class TradingBotUnitTest extends UnitTest {
   private StrategySelector strategySelector;
 
   @Mock
-  private AuctionResultInMemoryStorageService auctionResultInMemoryStorageService;
+  private RoundResultInMemoryStorageService auctionResultInMemoryStorageService;
 
   @InjectMocks
   private TradingBot tradingBot;

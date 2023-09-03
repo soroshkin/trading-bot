@@ -1,8 +1,8 @@
 package de.optimax_energy.bidder.auction;
 
-import de.optimax_energy.bidder.auction.api.AuctionResultStorageOperations;
+import de.optimax_energy.bidder.auction.api.RoundResultStorageOperations;
 import de.optimax_energy.bidder.auction.api.Bidder;
-import de.optimax_energy.bidder.auction.infrastructure.storage.AuctionResultInMemoryStorageService;
+import de.optimax_energy.bidder.auction.infrastructure.storage.RoundResultInMemoryStorageService;
 import de.optimax_energy.bidder.auction.infrastructure.strategy.StatisticsService;
 import de.optimax_energy.bidder.auction.infrastructure.strategy.StrategySelector;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -13,8 +13,8 @@ public class BidderAutoConfiguration {
 
 
   @Bean
-  public Bidder tradingBot(StrategySelector strategySelector, AuctionResultStorageOperations auctionResultStorageOperations, StatisticsService statisticsService) {
-    return new TradingBot(strategySelector, auctionResultStorageOperations, statisticsService);
+  public Bidder tradingBot(StrategySelector strategySelector, RoundResultStorageOperations roundResultStorageOperations, StatisticsService statisticsService) {
+    return new TradingBot(strategySelector, roundResultStorageOperations, statisticsService);
   }
 
   @Bean
@@ -23,8 +23,8 @@ public class BidderAutoConfiguration {
   }
 
   @Bean
-  public AuctionResultStorageOperations auctionResultStorageOperations() {
-    return new AuctionResultInMemoryStorageService();
+  public RoundResultStorageOperations auctionResultStorageOperations() {
+    return new RoundResultInMemoryStorageService();
   }
 
   @Bean

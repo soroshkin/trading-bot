@@ -1,7 +1,7 @@
 package de.optimax_energy.bidder.auction;
 
 import de.optimax_energy.bidder.IntegrationTest;
-import de.optimax_energy.bidder.auction.api.AuctionResultStorageOperations;
+import de.optimax_energy.bidder.auction.api.RoundResultStorageOperations;
 import de.optimax_energy.bidder.auction.api.Bidder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -39,7 +39,7 @@ class AuctionIntegrationTest extends IntegrationTest {
   private TradingBot aggressiveBidder;
 
   @Autowired
-  private AuctionResultStorageOperations auctionResultStorageOperations;
+  private RoundResultStorageOperations roundResultStorageOperations;
 
   private int initialQuantity;
 
@@ -90,7 +90,7 @@ class AuctionIntegrationTest extends IntegrationTest {
     tradingBot.init(initialQuantity, initialCash);
     dummyBidder.init(initialQuantity, initialCash);
     randomBidder.init(initialQuantity, initialCash);
-    auctionResultStorageOperations.getRoundResultsForBidder(tradingBot.getUuid()).clear();
+    roundResultStorageOperations.getRoundResultsForBidder(tradingBot.getUuid()).clear();
   }
 
   private Bidder startAuction(TradingBot tradingBot, TradingBot dummyBot) {

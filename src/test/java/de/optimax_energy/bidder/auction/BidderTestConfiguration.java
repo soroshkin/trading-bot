@@ -1,8 +1,7 @@
 package de.optimax_energy.bidder.auction;
 
-import de.optimax_energy.bidder.auction.api.AuctionResultStorageOperations;
+import de.optimax_energy.bidder.auction.api.RoundResultStorageOperations;
 import de.optimax_energy.bidder.auction.api.Bidder;
-import de.optimax_energy.bidder.auction.TradingBot;
 import de.optimax_energy.bidder.auction.infrastructure.strategy.StatisticsService;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -15,8 +14,8 @@ public class BidderTestConfiguration {
   private static final int AMOUNT_OF_PRODUCTS_IN_ONE_ROUND = 2;
 
   @Bean
-  public Bidder dummyBidder(AuctionResultStorageOperations auctionResultStorageOperations, StatisticsService statisticsService) {
-    return new TradingBot(null, auctionResultStorageOperations, statisticsService) {
+  public Bidder dummyBidder(RoundResultStorageOperations roundResultStorageOperations, StatisticsService statisticsService) {
+    return new TradingBot(null, roundResultStorageOperations, statisticsService) {
       @Override
       public int placeBid() {
         int bid = getInitialCash() / getInitialQuantity();
@@ -26,8 +25,8 @@ public class BidderTestConfiguration {
   }
 
   @Bean
-  public Bidder randomBidder(AuctionResultStorageOperations auctionResultStorageOperations, StatisticsService statisticsService) {
-    return new TradingBot(null, auctionResultStorageOperations, statisticsService) {
+  public Bidder randomBidder(RoundResultStorageOperations roundResultStorageOperations, StatisticsService statisticsService) {
+    return new TradingBot(null, roundResultStorageOperations, statisticsService) {
 
       @Override
       public int placeBid() {
@@ -40,8 +39,8 @@ public class BidderTestConfiguration {
   }
 
   @Bean
-  public Bidder aggressiveBidder(AuctionResultStorageOperations auctionResultStorageOperations, StatisticsService statisticsService) {
-    return new TradingBot(null, auctionResultStorageOperations, statisticsService) {
+  public Bidder aggressiveBidder(RoundResultStorageOperations roundResultStorageOperations, StatisticsService statisticsService) {
+    return new TradingBot(null, roundResultStorageOperations, statisticsService) {
       @Override
       public int placeBid() {
         int bid = getInitialCash() / (getInitialQuantity() / AMOUNT_OF_PRODUCTS_IN_ONE_ROUND - 1);
