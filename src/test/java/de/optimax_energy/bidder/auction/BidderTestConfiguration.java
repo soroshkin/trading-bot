@@ -1,8 +1,10 @@
 package de.optimax_energy.bidder.auction;
 
-import de.optimax_energy.bidder.auction.api.RoundResultStorageOperations;
 import de.optimax_energy.bidder.auction.api.Bidder;
+import de.optimax_energy.bidder.auction.api.RoundResultStorageOperations;
+import de.optimax_energy.bidder.auction.infrastructure.storage.RoundResultInMemoryStorageService;
 import de.optimax_energy.bidder.auction.infrastructure.strategy.StatisticsService;
+import de.optimax_energy.bidder.auction.infrastructure.strategy.StrategySelector;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
@@ -12,6 +14,26 @@ import java.util.Random;
 public class BidderTestConfiguration {
 
   private static final int AMOUNT_OF_PRODUCTS_IN_ONE_ROUND = 2;
+
+  @Bean
+  public Bidder tradingBot(StrategySelector strategySelector, RoundResultStorageOperations roundResultStorageOperations, StatisticsService statisticsService) {
+    return new TradingBot(strategySelector, roundResultStorageOperations, statisticsService);
+  }
+
+  @Bean
+  public StrategySelector strategySelector(StatisticsService statisticsService) {
+    return new StrategySelector(statisticsService);
+  }
+
+  @Bean
+  public RoundResultStorageOperations auctionResultStorageOperations() {
+    return new RoundResultInMemoryStorageService();
+  }
+
+  @Bean
+  public StatisticsService statisticsService() {
+    return new StatisticsService();
+  }
 
   @Bean
   public Bidder dummyBidder(RoundResultStorageOperations roundResultStorageOperations, StatisticsService statisticsService) {

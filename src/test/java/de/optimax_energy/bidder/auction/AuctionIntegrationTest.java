@@ -1,8 +1,9 @@
 package de.optimax_energy.bidder.auction;
 
 import de.optimax_energy.bidder.IntegrationTest;
-import de.optimax_energy.bidder.auction.api.RoundResultStorageOperations;
+import de.optimax_energy.bidder.application.TestApplication;
 import de.optimax_energy.bidder.auction.api.Bidder;
+import de.optimax_energy.bidder.auction.api.RoundResultStorageOperations;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -15,7 +16,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ContextConfiguration(classes = {BidderTestConfiguration.class, BidderAutoConfiguration.class})
+@ContextConfiguration(classes = {BidderTestConfiguration.class, TestApplication.class})
 class AuctionIntegrationTest extends IntegrationTest {
 
   private static final int AMOUNT_OF_PRODUCTS_IN_ONE_ROUND = 2;
