@@ -1,13 +1,14 @@
 package de.optimax_energy.bidder.auction;
 
-import de.optimax_energy.bidder.BidderTestConfiguration;
 import de.optimax_energy.bidder.IntegrationTest;
+import de.optimax_energy.bidder.auction.api.AuctionResultStorageOperations;
 import de.optimax_energy.bidder.auction.api.Bidder;
-import de.optimax_energy.bidder.auction.infrastructure.TradingBot;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
@@ -18,6 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AuctionIntegrationTest extends IntegrationTest {
 
   private static final int AMOUNT_OF_PRODUCTS_IN_ONE_ROUND = 2;
+
+  private final Logger logger = LoggerFactory.getLogger(getClass());
 
   @Autowired
   @Qualifier("tradingBot")
@@ -35,92 +38,115 @@ class AuctionIntegrationTest extends IntegrationTest {
   @Qualifier("aggressiveBidder")
   private TradingBot aggressiveBidder;
 
-  @BeforeEach
-  void setUp() {
+  @Autowired
+  private AuctionResultStorageOperations auctionResultStorageOperations;
+
+  private int initialQuantity;
+
+  @ParameterizedTest(name = "Should win dummy bidder. initialQuantity={0}, initialCash={1}")
+  @CsvSource({"50, 100", "100, 10000", "100, 1000", "10, 1000", "2, 200"})
+  void shouldWinDummyBidder(int initialQuantity, int initialCash) {
+    // given
+    setUp(initialQuantity, initialCash);
+
+    // when
+    Bidder bidder = startAuction(tradingBot, dummyBidder);
+
+    // then
+    assertThat(bidder).isEqualTo(tradingBot);
+  }
+
+  @ParameterizedTest(name = "Should win aggressive random bidder bot more than in half of auctions. initialQuantity={0}, initialCash={1}")
+  @CsvSource({"50, 100", "100, 10000", "100, 1000", "6, 1000", "2, 200"})
+  void shouldWinRandomBidder(int initialQuantity, int initialCash) {
+    // given
+    // the number of auctions should be large enough to exclude randomness in results
+    int numberOfTests = 100;
+
+    // when
+    int numberOfTradingBotWins = runAuctionMultipleTimesAndReturnNumberOfWinsOfFirstBidder(tradingBot, randomBidder, numberOfTests, initialQuantity, initialCash);
+
+    // then
+    assertThat(numberOfTradingBotWins * 100 / numberOfTests).isGreaterThan(50);
+  }
+
+  @Test
+  @DisplayName("Should win aggressive bidder")
+  void shouldWinAggressiveBidder() {
+    // given
+    int initialQuantity = 100;
+    int initialCash = 10000;
+    setUp(initialQuantity, initialCash);
+
+    // when
+    Bidder bidder = startAuction(tradingBot, aggressiveBidder);
+
+    // then
+    assertThat(bidder).isEqualTo(tradingBot);
+  }
+
+  private void setUp(int initialQuantity, int initialCash) {
+    this.initialQuantity = initialQuantity;
     tradingBot.init(initialQuantity, initialCash);
     dummyBidder.init(initialQuantity, initialCash);
     randomBidder.init(initialQuantity, initialCash);
+    auctionResultStorageOperations.getRoundResultsForBidder(tradingBot.getUuid()).clear();
   }
 
-  @Test
-  @DisplayName("should win dummy bidder")
-  void shouldWinDummyBidder() {
-    // given
-    int quantityLeft = initialQuantity;
-
-    // when
-    Bidder bidder = startAuction(quantityLeft, tradingBot, dummyBidder);
-
-    // then
-    assertThat(bidder).isInstanceOf(TradingBot.class);
-  }
-
-  @Test
-  @DisplayName("should win random bidder")
-  void shouldWinRandomBidder() {
-    // given
-    int quantityLeft = initialQuantity;
-
-    // when
-    Bidder bidder = startAuction(quantityLeft, tradingBot, randomBidder);
-
-    // then
-    assertThat(bidder).isInstanceOf(TradingBot.class);
-  }
-
-  @Test
-  @DisplayName("should win aggressive bidder")
-  void shouldWinAggressiveBidder() {
-    // given
-    int quantityLeft = initialQuantity;
-
-    // when
-    Bidder bidder = startAuction(quantityLeft, tradingBot, aggressiveBidder);
-
-    // then
-    assertThat(bidder).isInstanceOf(TradingBot.class);
-  }
-
-  private Bidder startAuction(int quantityToPlay, TradingBot tradingBot, TradingBot dummyBidder) {
-    while (quantityToPlay >= AMOUNT_OF_PRODUCTS_IN_ONE_ROUND
-      && (tradingBot.getRemainingCash() > 0 || dummyBidder.getRemainingCash() > 0)) {
+  private Bidder startAuction(TradingBot tradingBot, TradingBot dummyBot) {
+    int roundIndex = 1;
+    int quantityToPlay = initialQuantity;
+    while (quantityToPlay >= AMOUNT_OF_PRODUCTS_IN_ONE_ROUND) {
       int tradingBotBid = tradingBot.placeBid();
-      int dummyBidderBid = dummyBidder.placeBid();
+      int dummyBidderBid = dummyBot.placeBid();
 
       tradingBot.bids(tradingBotBid, dummyBidderBid);
-      dummyBidder.bids(dummyBidderBid, tradingBotBid);
+      dummyBot.bids(dummyBidderBid, tradingBotBid);
       quantityToPlay -= AMOUNT_OF_PRODUCTS_IN_ONE_ROUND;
+
+      logger.info("Round {}. Trading bot remaining cash: {}, dummy bot remaining cash: {}", roundIndex, tradingBot.getRemainingCash(), dummyBot.getRemainingCash());
+      logger.info("Round {}. Trading bot quantity: {}, dummy bot quantity: {}", roundIndex, tradingBot.getQuantity(), dummyBot.getQuantity());
+      roundIndex++;
     }
 
-    printBidders(tradingBot, dummyBidder);
-    return chooseWinner(tradingBot, dummyBidder);
+    return chooseWinner(tradingBot, dummyBot);
+  }
+
+  private int runAuctionMultipleTimesAndReturnNumberOfWinsOfFirstBidder(TradingBot tradingBot, TradingBot randomBidder, int numberOfTests, int initialQuantity, int initialCash) {
+    int numberOfTradingBotWins = 0;
+    for (int i = 0; i < numberOfTests; i++) {
+      setUp(initialQuantity, initialCash);
+      Bidder bidder = startAuction(tradingBot, randomBidder);
+      if (bidder != null && bidder.equals(tradingBot)) {
+        numberOfTradingBotWins++;
+      }
+      logger.info("number of wins {}", numberOfTradingBotWins);
+    }
+
+    return numberOfTradingBotWins;
   }
 
   private Bidder chooseWinner(TradingBot firstBidder, TradingBot secondBidder) {
     if (firstBidder.getQuantity() > secondBidder.getQuantity()) {
       return firstBidder;
     }
+
     if (firstBidder.getQuantity() < secondBidder.getQuantity()) {
       return secondBidder;
-    } else {
-      return chooseWinnerBasedOnLeftAmountOfCash(firstBidder, secondBidder);
     }
+
+    return chooseWinnerBasedOnLeftAmountOfCash(firstBidder, secondBidder);
   }
 
   private Bidder chooseWinnerBasedOnLeftAmountOfCash(TradingBot firstBidder, TradingBot secondBidder) {
     if (firstBidder.getRemainingCash() > secondBidder.getRemainingCash()) {
       return firstBidder;
     }
+
     if (firstBidder.getRemainingCash() < secondBidder.getRemainingCash()) {
       return secondBidder;
-    } else {
-      Assertions.fail("Both bidders have same amount of product and money");
-      return null;
     }
-  }
 
-  private void printBidders(Bidder firstBidder, Bidder secondBidder) {
-    System.out.println(firstBidder);
-    System.out.println(secondBidder);
+    return null;
   }
 }
